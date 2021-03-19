@@ -5,8 +5,8 @@
  *      Author: isao
  */
 
-#ifndef UTILS_H_
-#define UTILS_H_
+#ifndef AMTC_UTILS_UTILS_H_
+#define AMTC_UTILS_UTILS_H_
 
 #include <vector>
 #include <string>
@@ -239,6 +239,32 @@ bool string_to_eigen_matrix(const std::string& str,M& matrix,char delim='|',bool
     float               float64_data;
   } DataConverterType;
 
+/*
+ * bool check_bound(double value, double min_limit, double max_limit)
+ * Description:
+ *     Evalua si un valor esta dentro de un rango
+ * Input:
+ *     double value:
+ *         valor a evaluar
+ *     double min_limit:
+ *         limite inferior
+ *     double max_limit:
+ *         limite superior
+ * Output:
+ *     bool:
+ *         true si esta dentro del rango, falso si no.
+ */
+inline bool check_bound(double value, double min_limit, double max_limit)
+{
+  if(value < min_limit || max_limit < value)
+  {
+    return false;
+  }
+
+  return true;
+}
+
+
 } /* namespace amtc */
 
-#endif /* UTILS_H_ */
+#endif /* AMTC_UTILS_UTILS_H_ */
