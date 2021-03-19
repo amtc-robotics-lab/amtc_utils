@@ -10,7 +10,7 @@ catkin_package(
    INCLUDE_DIRS include
    LIBRARIES amtc_utils
    CATKIN_DEPENDS roscpp rospy
-   DEPENDS system_lib
+   DEPENDS
 )
 
 include_directories(
