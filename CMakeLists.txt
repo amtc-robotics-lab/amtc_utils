@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.0.2)
 project(amtc_utils)
 
+add_compile_options(-std=c++11)
+
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
