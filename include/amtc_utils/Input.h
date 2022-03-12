@@ -240,14 +240,12 @@ public:
     {
       if(data_)
       {
-        // AMTC_BREAKPOINT;
-        ROS_WARN_NODE("Attempting to read timed-out data from %s message. This is highly discouraged", ros::message_traits::DataType<Msg_Type>::value());
+        ROS_WARN_THROTTLE(5.0, "Attempting to read timed-out data from %s message. This is highly discouraged", ros::message_traits::DataType<Msg_Type>::value());
         return *data_;
       }
       else
       {
-        AMTC_BREAKPOINT;
-        ROS_WARN_NODE("Attempting to read %s message when no message has ben received yet. Returning default value", ros::message_traits::DataType<Msg_Type>::value());
+        ROS_WARN_THROTTLE(5.0, "Attempting to read %s message when no message has ben received yet. Returning default value", ros::message_traits::DataType<Msg_Type>::value());
         return default_data_;
       }
     }
