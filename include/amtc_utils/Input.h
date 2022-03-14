@@ -240,8 +240,7 @@ public:
     {
       if(data_)
       {
-        // AMTC_BREAKPOINT;
-        ROS_WARN_NODE("Attempting to read timed-out data from %s message. This is highly discouraged", ros::message_traits::DataType<Msg_Type>::value());
+        ROS_WARN_NODE_THROTTLE(5.0, "Attempting to read timed-out data from %s message. This is highly discouraged", ros::message_traits::DataType<Msg_Type>::value());
         return *data_;
       }
       else
