@@ -247,7 +247,7 @@ public:
       else
       {
         AMTC_BREAKPOINT;
-        ROS_WARN_NODE("Attempting to read %s message when no message has ben received yet. Returning default value", ros::message_traits::DataType<Msg_Type>::value());
+        ROS_WARN_NODE_THROTTLE(1.0,"Attempting to read %s message when no message has ben received yet. Returning default value", ros::message_traits::DataType<Msg_Type>::value());
         return default_data_;
       }
     }
