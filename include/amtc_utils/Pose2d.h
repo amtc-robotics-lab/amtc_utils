@@ -9,7 +9,6 @@
 #ifndef AMTC_UTILS_POSE2D_H
 #define AMTC_UTILS_POSE2D_H
 
-
 #include <amtc_utils/Vector2d.h>
 #include <tf/tf.h>
 
@@ -111,7 +110,19 @@ public:
     tf::Pose pose;
     pose.setOrigin(tf::Vector3(position().x(), position().y(), 0.f));
     pose.setRotation(tf::createQuaternionFromYaw(getOrientationAngle()));
+    return pose;
+  }
 
+  inline geometry_msgs::Pose toPoseMsg()
+  {
+    geometry_msgs::Pose pose;
+    pose.position.x = position().x();
+    pose.position.y = position().y();
+    tf::Quaternion q = tf::createQuaternionFromYaw(getOrientationAngle());
+    pose.orientation.x = q.x();
+    pose.orientation.y = q.y();
+    pose.orientation.z = q.z();
+    pose.orientation.w = q.w();
     return pose;
   }
 
