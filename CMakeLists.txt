@@ -1,28 +1,47 @@
-cmake_minimum_required(VERSION 3.0.2)
+cmake_minimum_required(VERSION 3.16.3...3.20)
 project(amtc_utils)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-)
+set(CMAKE_CXX_STANDARD 17)
 
-catkin_package(
-   INCLUDE_DIRS include
-   LIBRARIES amtc_utils
-   CATKIN_DEPENDS roscpp rospy
-   DEPENDS
-)
+find_package(ament_cmake REQUIRED)
 
-include_directories(
-  include
-  ${catkin_INCLUDE_DIRS}
-)
+find_package(rclcpp REQUIRED)
 
 
-add_library(${PROJECT_NAME}
-  src/${PROJECT_NAME}/Utils.cpp
-)
 
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_library(${PROJECT_NAME} SHARED
+    src/${PROJECT_NAME}/Utils.cpp
+
+    )
+
+ament_target_dependencies(${PROJECT_NAME}
+    rclcpp
+    )
+target_include_directories(${PROJECT_NAME}
+    PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:include>)
+
+ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+    rclcpp
+
+    )
 
 
+install(
+  DIRECTORY include/
+  DESTINATION include
+  )
+
+install(
+  TARGETS ${PROJECT_NAME}
+  EXPORT export_${PROJECT_NAME}
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+  RUNTIME DESTINATION bin
+  INCLUDES DESTINATION include
+  )
+
+
+ament_package()
