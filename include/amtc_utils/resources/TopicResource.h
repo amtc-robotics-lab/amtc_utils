@@ -6,132 +6,108 @@
 #include <amtc_utils/resources/Resource.h>
 
 namespace amtc{
-class AbstractTopicResource : public Resource
-{
-  public:
-  bool isAvailable()
-  {
-    return false;
-  }
 
-  bool has_valid_data()
-  {
-    return false;
-  }
-
-  bool has_new_data()
-  {
-    return false;
-  }
-
-  bool isNull()
-  {
-    return false;
-  }
-
-  virtual void clear_timed_out() { }
-};
-
-class NullTopicResource : public AbstractTopicResource
-{
-  private:
-  NullTopicResource() {}
-
-  public:
-  bool isNull()
-  {
-    return true;
-  }
-
-  static NullTopicResource& getInstance()
-  {
-    static NullTopicResource instance; // Guaranteed to be destroyed.
-                       // Instantiated on first use.
-    return instance;
-  }
-  NullTopicResource(NullTopicResource const&) = delete;
-  void operator=(NullTopicResource const&) = delete;
-};
-
-template<typename T> class TopicResource : public AbstractTopicResource
+template<typename T> class TopicResource : Resource
 {
 
 protected:
 
-  rclcpp::Node::SharedPtr node_;
-  rclcpp::Subscription<T>::SharedPtr subscription_;
+  typename rclcpp::Subscription<T>::SharedPtr subscription_;
+  rclcpp::TimerBase::SharedPtr timeout_timer_;
 
-  rclcpp::Time last_update_time_;
-  ros::Duration time_out_duration_;
-  bool new_data_;
-  typename T::ConstPtr data_;
-  std:optional<T> default_data_;
+  rclcpp::Duration time_out_duration_;
+  rclcpp::Time last_data_time_;
+  typename T::ConstSharedPtr data_;
+  typename T::ConstSharedPtr default_data_;
   std::string topic_name_;
+  rclcpp::Node * node_;
 
   public:
   
-  typedef std::shared_ptr< TopicResource<T> > Ptr;
+  typedef std::shared_ptr< TopicResource<T> > SharedPtr;
 
-  TopicResource(rclcpp::Node::SharedPtr node, const char* t_topicName)
-    : node_(node), topic_name_(t_topicName)
+  TopicResource(rclcpp::Node *node, const char* t_topicName)
+    :    topic_name_(t_topicName), time_out_duration_(1,0), last_data_time_(), node_(node)
   {
-    subscription_  = node_->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, _1) );
-    time_out_duration_    = rclcpp::Duration(1.0);
-    last_update_time_     = rclcpp::Time();
-    new_data_ = false;
-  }
-
-  void set_default_value(T def_msg){
-    default_data_ = def_msg;
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
   }
 
 
-  void set_time_out_time(ros::Duration timeout)
+  TopicResource(rclcpp::Node *node, const char* t_topicName, double period_seconds)
+    :    topic_name_(t_topicName), time_out_duration_(rclcpp::Duration::from_seconds(period_seconds)), last_data_time_(), node_(node)
   {
-    time_out_duration_ = timeout;
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
+  }
+
+  TopicResource(rclcpp::Node *node, const char* t_topicName, rclcpp::Duration period)
+    :    topic_name_(t_topicName), time_out_duration_(period), last_data_time_(), node_(node)
+  {
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
   }
 
 
-  void msg_cb(const typename T::ConstPtr& msg){
+
+
+/**
+ * @brief  removes the stored msg when timing out
+ * This Function should run on same thread as msg_cb
+ * 
+ */
+  void timer_cb(){
+    // std::cout<< "timing out\n";
+    if(node_->now()-last_data_time_ > time_out_duration_){
+      data_.reset();
+    }
+  }
+
+/**
+ * @brief Recieves new data and resets the timeout
+ *  This Function should run on same thread as timer_cb
+ * 
+ * @param msg 
+ */
+  void msg_cb(const typename T::ConstSharedPtr msg){
     data_ = msg;
-    last_update_time_ = rclcpp::Time::now();
-    new_data_         = true;
+    last_data_time_= node_->now();
   }
 
+/**
+ * @brief alias of is_available()
+ * 
+ * @return true 
+ * @return false 
+ */
   inline bool isAvailable(){
     return is_available();
   };
 
+/**
+ * @brief check if data is available and not timed out 
+ * Note that data could timeout between a call to isAvailable and get()
+ * 
+ * @return true data is received and has not timed out
+ * @return false  data not available or not timed out
+ */
   inline bool is_available()
   {
-    bool timed_out = rclcpp::Time::now() - last_update_time_ > time_out_duration_;
-    return data_ && !timed_out;
-  }
 
-
-
-  bool has_new_data()
-  {
-    return new_data_;
-  }
-
-  std::optional<T> get()
-  {
-    new_data_ = false;
-
-    if(data_)
-    {
-      if(!is_available())
-      {
-        RCLCPP_WARN_NODE_THROTTLE(1.0,"Attempting to read %s message on topic %s but data is timed out", ros::message_traits::DataType<T>::value(), topic_name_.c_str());
-        return default_data_;
-      }
-      return *data_;
-    }
-      
-    RCLCPP_WARN_NODE_THROTTLE(5.0, "Reading message on topic %s before any topic is received, returning default",topic_name_.c_str());
+      return data_ && node_->now()-last_data_time_ < time_out_duration_;
     
-    return default_data_;
+  }
+
+/**
+ * @brief get a shared_ptr to a const msg
+ * if data has timed out or not received this will be null!
+ * 
+ * @return T::ConstSharedPtr 
+ */
+  typename T::ConstSharedPtr get()
+  {
+    if (is_available()){
+      return data_;
+    }
+    return default_data_; //usually null
+    
   }
 
 
