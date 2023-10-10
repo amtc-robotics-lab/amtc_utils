@@ -19,7 +19,8 @@ namespace amtc
 class SimplePWM
 {
 public:
-  SimplePWM(float period = 1.0, float duty_cycle = 0.5, unsigned int max_cycles = 0)
+  SimplePWM(rclcpp::Node *node, double period = 1.0, float duty_cycle = 0.5, unsigned int max_cycles = 0):
+  node_(node)
   {
     set_period(period);
     set_duty_cycle(duty_cycle);
@@ -32,13 +33,13 @@ public:
   bool set_period(double period)
   {
     _period = period;
-    _init_time = rclcpp::Time::now();
+    _init_time = node_->now();
 
     if( _period < 0.01)
     {
       _period = 0.01;
 
-      RCLCPP_ERROR("SimplePWM: period < 0.01, set as 0.01");
+      RCLCPP_ERROR(node_->get_logger(),"SimplePWM: period < 0.01, set as 0.01");
       set_duty_cycle(_duty_cycle);
 
       return false;
@@ -52,13 +53,13 @@ public:
   bool set_duty_cycle(double duty_cycle)
   {
     _duty_cycle = duty_cycle;
-    _calculed_duty_cycle = duty_cycle * _period;
+    _calculed_duty_cycle =  _period* duty_cycle;
 
     if(_duty_cycle < 0.0)
     {
       _duty_cycle = 0.0;
       _calculed_duty_cycle = 0.0;
-      RCLCPP_ERROR("SimplePWM: duty_cycle < 0.0, set as 0.0");
+      RCLCPP_ERROR(node_->get_logger(),"SimplePWM: duty_cycle < 0.0, set as 0.0");
 
       return false;
     }
@@ -67,7 +68,7 @@ public:
     {
       _duty_cycle = 1.0;
       _calculed_duty_cycle = _period;
-      RCLCPP_ERROR("SimplePWM: duty_cycle > 1.0, set as 1.0");
+      RCLCPP_ERROR(node_->get_logger(),"SimplePWM: duty_cycle > 1.0, set as 1.0");
 
       return false;
     }
@@ -82,7 +83,7 @@ public:
 
   void start()
   {
-    _init_time = rclcpp::Time::now();
+    _init_time = node_->now();
     _is_running = true;
   }
 
@@ -100,7 +101,7 @@ public:
   {
     if(_is_running == true)
     {
-      return (unsigned int)std::floor(((rclcpp::Time::now() - _init_time).toSec())/_period);
+      return (unsigned int)std::floor(((node_->now() - _init_time).seconds())/_period);
     }
 
     return  0;
@@ -126,14 +127,14 @@ public:
         return true;
       }
 
-      return (std::fmod(((rclcpp::Time::now() - _init_time).toSec()), _period)> _calculed_duty_cycle) ? false : true;
+      return (std::fmod(((node_->now() - _init_time).seconds()), _period)> _calculed_duty_cycle) ? false : true;
     }
 
     return false;
   }
 
 private:
-
+  rclcpp::Node* node_;
   rclcpp::Time _init_time;
   double _duty_cycle;
   double _calculed_duty_cycle;
