@@ -1,16 +1,8 @@
-/**
- * @file Pose2d.h
- *
- * @author Paul Vallejos
- *
- * @date 04-04-16
- */
-
 #ifndef AMTC_UTILS_POSE2D_H
 #define AMTC_UTILS_POSE2D_H
 
 #include <amtc_utils/Vector2d.h>
-#include <tf/tf.h>
+// #include <tf/tf.h>
 
 namespace amtc
 {
@@ -100,31 +92,31 @@ public:
     return Pose2d(Vector2d::Zero() , Vector2d(1.0, 0.0));
   }
 
-  inline static Pose2d fromTf(const tf::Pose& pose)
-  {
-    return amtc::Pose2d(amtc::Vector2d(pose.getOrigin().x(), pose.getOrigin().y()), amtc::Vector2d::polarVector(1.0, tf::getYaw(pose.getRotation())));
-  }
+  // inline static Pose2d fromTf(const tf::Pose& pose)
+  // {
+  //   return amtc::Pose2d(amtc::Vector2d(pose.getOrigin().x(), pose.getOrigin().y()), amtc::Vector2d::polarVector(1.0, tf::getYaw(pose.getRotation())));
+  // }
 
-  inline tf::Pose toTf()
-  {
-    tf::Pose pose;
-    pose.setOrigin(tf::Vector3(position().x(), position().y(), 0.f));
-    pose.setRotation(tf::createQuaternionFromYaw(getOrientationAngle()));
-    return pose;
-  }
+  // inline tf::Pose toTf()
+  // {
+  //   tf::Pose pose;
+  //   pose.setOrigin(tf::Vector3(position().x(), position().y(), 0.f));
+  //   pose.setRotation(tf::createQuaternionFromYaw(getOrientationAngle()));
+  //   return pose;
+  // }
 
-  inline geometry_msgs::Pose toPoseMsg()
-  {
-    geometry_msgs::Pose pose;
-    pose.position.x = position().x();
-    pose.position.y = position().y();
-    tf::Quaternion q = tf::createQuaternionFromYaw(getOrientationAngle());
-    pose.orientation.x = q.x();
-    pose.orientation.y = q.y();
-    pose.orientation.z = q.z();
-    pose.orientation.w = q.w();
-    return pose;
-  }
+  // inline geometry_msgs::Pose toPoseMsg()
+  // {
+  //   geometry_msgs::Pose pose;
+  //   pose.position.x = position().x();
+  //   pose.position.y = position().y();
+  //   tf::Quaternion q = tf::createQuaternionFromYaw(getOrientationAngle());
+  //   pose.orientation.x = q.x();
+  //   pose.orientation.y = q.y();
+  //   pose.orientation.z = q.z();
+  //   pose.orientation.w = q.w();
+  //   return pose;
+  // }
 
 public:
 

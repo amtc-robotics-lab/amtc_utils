@@ -1,12 +1,3 @@
-/**
- * @file Transform2d.h
- *
- * @author Paul Vallejos
- *
- * @date 04-04-16
- *
- */
-
 #ifndef AMTC_UTILS_TRANSFORM2D_H
 #define AMTC_UTILS_TRANSFORM2D_H
 
@@ -85,27 +76,27 @@ public:
     return Pose2d(origin, rotation);
   }
 
-  inline static Transform2d fromTf(const tf::Pose& pose)
-  {
-    return amtc::Transform2d(amtc::Vector2d(pose.getOrigin().x(), pose.getOrigin().y()), amtc::Vector2d::polarVector(1.0, tf::getYaw(pose.getRotation())));
-  }
+  // inline static Transform2d fromTf(const tf::Pose& pose)
+  // {
+  //   return amtc::Transform2d(amtc::Vector2d(pose.getOrigin().x(), pose.getOrigin().y()), amtc::Vector2d::polarVector(1.0, tf::getYaw(pose.getRotation())));
+  // }
 
-  inline static Transform2d fromTf(const geometry_msgs::Pose& msg)
-  {
-    tf::Pose pose;
-    tf::poseMsgToTF(msg, pose);
+  // inline static Transform2d fromTf(const geometry_msgs::Pose& msg)
+  // {
+  //   tf::Pose pose;
+  //   tf::poseMsgToTF(msg, pose);
 
-    return fromTf(pose);
-  }
+  //   return fromTf(pose);
+  // }
 
-  inline tf::Pose toTf()
-  {
-    tf::Pose pose;
-    pose.setOrigin(tf::Vector3(origin.x(), origin.y(), 0.f));
-    pose.setRotation(tf::createQuaternionFromYaw(rotation.getAngle()));
+  // inline tf::Pose toTf()
+  // {
+  //   tf::Pose pose;
+  //   pose.setOrigin(tf::Vector3(origin.x(), origin.y(), 0.f));
+  //   pose.setRotation(tf::createQuaternionFromYaw(rotation.getAngle()));
 
-    return pose;
-  }
+  //   return pose;
+  // }
 
 public:
 
