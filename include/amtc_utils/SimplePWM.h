@@ -19,7 +19,7 @@ namespace amtc
 class SimplePWM
 {
 public:
-  SimplePWM(rclcpp::Node::ConstWeakPtr node ,float period = 1.0, float duty_cycle = 0.5, unsigned int max_cycles = 0)
+  SimplePWM(rclcpp::Node *node ,float period = 1.0, float duty_cycle = 0.5, unsigned int max_cycles = 0)
   {
     _node = node;
     set_period(period);
@@ -33,7 +33,7 @@ public:
   bool set_period(double period)
   {
     _period = period;
-    _init_time = _node->get;
+    _init_time = _node->now();
 
     if( _period < 0.01)
     {
@@ -101,7 +101,7 @@ public:
   {
     if(_is_running == true)
     {
-      return (unsigned int)std::floor(((_node->now() - _init_time).toSec())/_period);
+      return (unsigned int)std::floor(((_node->now() - _init_time).seconds())/_period);
     }
 
     return  0;
@@ -127,7 +127,7 @@ public:
         return true;
       }
 
-      return (std::fmod(((_node->now() - _init_time).toSec()), _period)> _calculed_duty_cycle) ? false : true;
+      return (std::fmod(((_node->now() - _init_time).seconds()), _period)> _calculed_duty_cycle) ? false : true;
     }
 
     return false;
@@ -135,7 +135,7 @@ public:
 
 private:
 
-  rclcpp::Node::ConstWeakPtr _node;
+  rclcpp::Node * _node;
   rclcpp::Time _init_time;
   double _duty_cycle;
   double _calculed_duty_cycle;

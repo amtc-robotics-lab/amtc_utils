@@ -45,7 +45,23 @@ protected:
     subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
   }
 
+/**
+ * @brief Set the timeout duration object
+ * 
+ * @param period_seconds 
+ */
+void set_timeout_duration(double period_seconds){
+  time_out_duration_ = rclcpp::Duration::from_seconds(period_seconds);
+}
 
+/**
+ * @brief Set the timeout duration object
+ * 
+ * @param period 
+ */
+void set_timeout_duration(rclcpp::Duration period){
+  time_out_duration_ = period;
+}
 
 
 /**
@@ -60,6 +76,14 @@ protected:
     }
   }
 
+/**
+ * @brief  returns the time since last data was received
+ * 
+ * @return rclcpp::Duration 
+ */
+ rclcpp::Duration time_since_last_data(){
+   return node_->now()-last_data_time_;
+ }
 /**
  * @brief Recieves new data and resets the timeout
  *  This Function should run on same thread as timer_cb
