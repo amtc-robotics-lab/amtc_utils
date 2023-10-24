@@ -7,6 +7,7 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 find_package(ament_cmake REQUIRED)
 
 find_package(rclcpp REQUIRED)
+find_package(tf2 REQUIRED)
 find_package(std_msgs REQUIRED)
 
 

@@ -2,7 +2,9 @@
 #define AMTC_UTILS_POSE2D_H
 
 #include <amtc_utils/Vector2d.h>
+#include <geometry_msgs/msg/pose.hpp>
 // #include <tf/tf.h>
+#include <tf2/LinearMath/Quaternion.h>
 
 namespace amtc
 {
@@ -105,18 +107,20 @@ public:
   //   return pose;
   // }
 
-  // inline geometry_msgs::Pose toPoseMsg()
-  // {
-  //   geometry_msgs::Pose pose;
-  //   pose.position.x = position().x();
-  //   pose.position.y = position().y();
-  //   tf::Quaternion q = tf::createQuaternionFromYaw(getOrientationAngle());
-  //   pose.orientation.x = q.x();
-  //   pose.orientation.y = q.y();
-  //   pose.orientation.z = q.z();
-  //   pose.orientation.w = q.w();
-  //   return pose;
-  // }
+  inline geometry_msgs::msg::Pose toPoseMsg()
+  {
+    geometry_msgs::msg::Pose pose;
+    pose.position.x = position().x();
+    pose.position.y = position().y();
+    tf2::Quaternion q;
+    // q.setRPY(0, 0, getOrientationAngle());
+    q.setEuler(0, 0, getOrientationAngle());
+    pose.orientation.x = q.x();
+    pose.orientation.y = q.y();
+    pose.orientation.z = q.z();
+    pose.orientation.w = q.w();
+    return pose;
+  }
 
 public:
 
