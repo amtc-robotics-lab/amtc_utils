@@ -7,7 +7,7 @@
 
 namespace amtc{
 
-template<typename T> class TopicResource : public Resource
+template<typename T> class TopicResource : Resource
 {
 
 protected:
@@ -29,10 +29,7 @@ protected:
   TopicResource(rclcpp::Node *node, const char* t_topicName)
     :    topic_name_(t_topicName), time_out_duration_(1,0), last_data_time_(), node_(node)
   {
-    subscription_  = node_->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
-    timeout_timer_ = rclcpp::create_timer(node_,node_->get_clock(), time_out_duration_,std::bind(&TopicResource<T>::timer_cb, this));
-    timeout_timer_->cancel();
-
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
   }
 
 
@@ -40,23 +37,31 @@ protected:
     :    topic_name_(t_topicName), time_out_duration_(rclcpp::Duration::from_seconds(period_seconds)), last_data_time_(), node_(node)
   {
     subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
-    timeout_timer_ = rclcpp::create_timer(node_,node_->get_clock(), time_out_duration_,std::bind(&TopicResource<T>::timer_cb, this));
-    timeout_timer_->cancel();
-}
-
-  void set_default_value(T def_msg){
-    default_data_ = def_msg;
   }
 
   TopicResource(rclcpp::Node *node, const char* t_topicName, rclcpp::Duration period)
     :    topic_name_(t_topicName), time_out_duration_(period), last_data_time_(), node_(node)
   {
     subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
-    timeout_timer_ = rclcpp::create_timer(node_,node_->get_clock(), time_out_duration_,std::bind(&TopicResource<T>::timer_cb, this));
-    timeout_timer_->cancel();
   }
 
+/**
+ * @brief Set the timeout duration object
+ * 
+ * @param period_seconds 
+ */
+void set_timeout_duration(double period_seconds){
+  time_out_duration_ = rclcpp::Duration::from_seconds(period_seconds);
+}
 
+/**
+ * @brief Set the timeout duration object
+ * 
+ * @param period 
+ */
+void set_timeout_duration(rclcpp::Duration period){
+  time_out_duration_ = period;
+}
 
 
 /**
@@ -72,6 +77,14 @@ protected:
   }
 
 /**
+ * @brief  returns the time since last data was received
+ * 
+ * @return rclcpp::Duration 
+ */
+ rclcpp::Duration time_since_last_data(){
+   return node_->now()-last_data_time_;
+ }
+/**
  * @brief Recieves new data and resets the timeout
  *  This Function should run on same thread as timer_cb
  * 
@@ -80,7 +93,6 @@ protected:
   void msg_cb(const typename T::ConstSharedPtr msg){
     data_ = msg;
     last_data_time_= node_->now();
-    timeout_timer_->reset();
   }
 
 /**
@@ -91,7 +103,7 @@ protected:
  */
   inline bool isAvailable(){
     return is_available();
-  }
+  };
 
 /**
  * @brief check if data is available and not timed out 
@@ -100,15 +112,12 @@ protected:
  * @return true data is received and has not timed out
  * @return false  data not available or not timed out
  */
-  inline bool is_available(){
-    if(data_) {
-      return true ;
-    }
-    return false;
+  inline bool is_available()
+  {
+
+      return data_ && node_->now()-last_data_time_ < time_out_duration_;
+    
   }
-
-
-
 
 /**
  * @brief get a shared_ptr to a const msg
@@ -118,8 +127,11 @@ protected:
  */
   typename T::ConstSharedPtr get()
   {
-    return data_;
-   
+    if (is_available()){
+      return data_;
+    }
+    return default_data_; //usually null
+    
   }
 
 

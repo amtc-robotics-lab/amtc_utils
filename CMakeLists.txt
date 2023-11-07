@@ -11,6 +11,12 @@ find_package(tf2 REQUIRED)
 find_package(std_msgs REQUIRED)
 
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
+
+
+
+
+ament_export_include_directories(include)
 
 add_library(${PROJECT_NAME} SHARED
     src/${PROJECT_NAME}/Utils.cpp
