@@ -21,6 +21,8 @@ protected:
   typename T::ConstSharedPtr default_data_;
   std::string topic_name_;
   rclcpp::Node * node_;
+  std::string access_token_;
+  bool check_access_token_ = false;
 
   public:
   
@@ -134,8 +136,18 @@ void set_timeout_duration(rclcpp::Duration period){
     
   }
 
+  void set_access_token(const std::string &token){
+    access_token_ = token;
+    rclcpp::SubscriptionOptions sub_options;
+    sub_options.content_filter_options.filter_expression = "access_token.data == %0";
+    sub_options.content_filter_options.expression_parameters = {
+            token
+    };
+    subscription_  = node_->create_subscription<T>(topic_name_, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
 
+
+  }
 
 };
 
-}
+} // namespace amtc
