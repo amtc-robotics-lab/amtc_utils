@@ -29,20 +29,20 @@ protected:
   typedef std::shared_ptr< TopicResource<T> > SharedPtr;
 
   TopicResource(rclcpp::Node *node, const char* t_topicName)
-    :    topic_name_(t_topicName), time_out_duration_(1,0), last_data_time_(), node_(node)
+    :    topic_name_(t_topicName), time_out_duration_(1,0), last_data_time_(0,0,node->get_clock()->get_clock_type()), node_(node)
   {
     subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
   }
 
 
   TopicResource(rclcpp::Node *node, const char* t_topicName, double period_seconds)
-    :    topic_name_(t_topicName), time_out_duration_(rclcpp::Duration::from_seconds(period_seconds)), last_data_time_(), node_(node)
+    :    topic_name_(t_topicName), time_out_duration_(rclcpp::Duration::from_seconds(period_seconds)), last_data_time_(0,0,node->get_clock()->get_clock_type()), node_(node)
   {
     subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
   }
 
   TopicResource(rclcpp::Node *node, const char* t_topicName, rclcpp::Duration period)
-    :    topic_name_(t_topicName), time_out_duration_(period), last_data_time_(), node_(node)
+    :    topic_name_(t_topicName), time_out_duration_(period), last_data_time_(0,0,node->get_clock()->get_clock_type()), node_(node)
   {
     subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
   }
