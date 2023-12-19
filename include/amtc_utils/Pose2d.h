@@ -3,6 +3,7 @@
 
 #include <amtc_utils/Vector2d.h>
 #include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
 // #include <tf/tf.h>
 #include <tf2/LinearMath/Quaternion.h>
 
@@ -120,6 +121,13 @@ public:
     pose.orientation.z = q.z();
     pose.orientation.w = q.w();
     return pose;
+  }
+
+  inline geometry_msgs::msg::PoseStamped toPoseStampedMsg()
+  {
+    geometry_msgs::msg::PoseStamped pose_stamp;
+    pose_stamp.pose = toPoseMsg();
+    return pose_stamp;
   }
 
 public:
