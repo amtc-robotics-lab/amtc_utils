@@ -130,6 +130,15 @@ public:
     return pose_stamp;
   }
 
+  inline geometry_msgs::msg::PoseStamped toPoseStampedMsg(std::string frame, builtin_interfaces::msg::Time stamp)
+  {
+    geometry_msgs::msg::PoseStamped pose_stamp;
+    pose_stamp.header.frame_id = frame;
+    pose_stamp.header.stamp = stamp;
+    pose_stamp.pose = toPoseMsg();
+    return pose_stamp;
+  }
+
 public:
 
   Vector2d orientation;
