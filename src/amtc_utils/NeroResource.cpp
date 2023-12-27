@@ -63,6 +63,11 @@ bool NeroResource::register_resource(const rclcpp::Duration &timeout) {
 }
 
 bool NeroResource::unregister_resource(const rclcpp::Duration &timeout) {
+    if(!unregister_client_->wait_for_service(std::chrono::seconds(1)))
+    {
+      RCLCPP_ERROR(node_->get_logger(), "Failed to find unregister server");
+      return false;
+    }
     auto request = std::make_shared<resource_manager_msgs::srv::Unregister::Request>();
     request->token.data = access_token_;
     auto result = unregister_client_->async_send_request(request);
