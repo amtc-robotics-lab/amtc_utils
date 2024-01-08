@@ -7,7 +7,7 @@
 
 namespace amtc{
 
-template<typename T> class TopicResource : Resource
+template<typename T> class TopicResource : public Resource
 {
 
 protected:

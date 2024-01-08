@@ -12,8 +12,27 @@
 #include <string>
 #include <sstream>
 #include <inttypes.h>
+#include <ctime>
+#include <rclcpp/rclcpp.hpp>
 
 namespace amtc {
+
+
+  std::string  to_string(const rclcpp::Time &time)
+  {
+    std::time_t t = time.nanoseconds() / 1000000000;
+
+    // Format time_t as string
+    char buffer[100];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
+
+    // Append remaining nanoseconds
+    auto remaining_ns = time.nanoseconds() % 1000000000;
+    std::string ns_str = std::to_string(remaining_ns);
+
+    return std::string(buffer) + "." + ns_str + "ns";
+
+  }
 /*
  * std::vector<std::string> &split_string(const std::string &s, char delim, std::vector<std::string> &elems)
  * Description:
