@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <amtc_utils/resources/Resource.h>
+#include <mutex>
 
 namespace amtc{
 
@@ -23,6 +24,7 @@ protected:
   rclcpp::Node * node_;
   std::string access_token_;
   bool check_access_token_ = false;
+  std::mutex data_mutex_;
 
   public:
   
@@ -31,7 +33,7 @@ protected:
   TopicResource(rclcpp::Node *node, const char* t_topicName)
     :    topic_name_(t_topicName), time_out_duration_(1,0), last_data_time_(0,0,node->get_clock()->get_clock_type()), node_(node)
   {
-    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1));
   }
 
 
@@ -53,6 +55,7 @@ protected:
  * @param period_seconds 
  */
 void set_timeout_duration(double period_seconds){
+  std::scoped_lock lock(data_mutex_);
   time_out_duration_ = rclcpp::Duration::from_seconds(period_seconds);
 }
 
@@ -62,6 +65,7 @@ void set_timeout_duration(double period_seconds){
  * @param period 
  */
 void set_timeout_duration(rclcpp::Duration period){
+    std::scoped_lock lock(data_mutex_);
   time_out_duration_ = period;
 }
 
@@ -84,6 +88,7 @@ void set_timeout_duration(rclcpp::Duration period){
  * @return rclcpp::Duration 
  */
  rclcpp::Duration time_since_last_data(){
+    std::scoped_lock lock(data_mutex_);
    return node_->now()-last_data_time_;
  }
 /**
@@ -93,8 +98,10 @@ void set_timeout_duration(rclcpp::Duration period){
  * @param msg 
  */
   void msg_cb(const typename T::ConstSharedPtr msg){
+    std::scoped_lock lock(data_mutex_);
     data_ = msg;
     last_data_time_= node_->now();
+//    RCLCPP_INFO(node_->get_logger(), "received data on topic %s", topic_name_.c_str());
   }
 
 /**
@@ -116,7 +123,8 @@ void set_timeout_duration(rclcpp::Duration period){
  */
   inline bool is_available()
   {
-
+    std::scoped_lock lock(data_mutex_);
+//    RCLCPP_INFO(node_->get_logger(), "checking availability of topic %s", topic_name_.c_str());
       return data_ && node_->now()-last_data_time_ < time_out_duration_;
     
   }
@@ -129,7 +137,8 @@ void set_timeout_duration(rclcpp::Duration period){
  */
   typename T::ConstSharedPtr get()
   {
-    if (is_available()){
+    std::scoped_lock lock(data_mutex_);
+    if (data_ && node_->now()-last_data_time_ < time_out_duration_ ){
       return data_;
     }
     return default_data_; //usually null
