@@ -129,6 +129,15 @@ void set_timeout_duration(rclcpp::Duration period){
     
   }
 
+  /**
+   * @brief set the default data to return if data is not available
+   *
+   * @param msg
+   */
+  void set_default_data(const typename T::ConstSharedPtr msg){
+    default_data_ = msg;
+  }
+
 /**
  * @brief get a shared_ptr to a const msg
  * if data has timed out or not received this will be null!
