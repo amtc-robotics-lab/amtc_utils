@@ -53,7 +53,7 @@ bool NeroResource::register_resource(const rclcpp::Duration &timeout) {
     request->provider_name = std::string(node_->get_name())+"/"+resource_type_;
 
     RCLCPP_INFO(node_->get_logger(),"Waiting for resource_manager/register service to be available");
-    while (! register_client_->wait_for_service(timeout.to_chrono<std::chrono::duration<int64_t, std::milli> >()) ){
+    while (!register_client_->wait_for_service(timeout.to_chrono<std::chrono::duration<int64_t, std::milli> >()) & rclcpp::ok()){
       RCLCPP_ERROR(node_->get_logger(), "Waiting for resource_manager/register service to be available");
     }
     RCLCPP_INFO(node_->get_logger(),"resource_manager/register service is available");
