@@ -4,8 +4,8 @@
 #include <amtc_utils/Vector2d.h>
 #include <geometry_msgs/msg/pose.hpp>
 #include <geometry_msgs/msg/pose_stamped.hpp>
-// #include <tf/tf.h>
 #include <tf2/LinearMath/Quaternion.h>
+#include <tf2/utils.h>
 
 namespace amtc
 {
@@ -41,6 +41,13 @@ public:
   Pose2d(const Vector2d& position, double ori) :
     Vector2d(position), orientation(cos(ori), sin(ori))
   {}
+
+  Pose2d(geometry_msgs::msg::Pose pose_msg) :
+    Vector2d(),
+    orientation(1.0, 0.0)
+  {
+    fromPoseMsg(pose_msg);
+  }
 
   inline Vector2d& position()
   {
@@ -108,13 +115,23 @@ public:
   //   return pose;
   // }
 
+  inline void fromPoseMsg(geometry_msgs::msg::Pose pose_msg)
+  {
+    position().x() = pose_msg.position.x;
+    position().y() = pose_msg.position.y;
+    tf2::Quaternion q(pose_msg.orientation.x, pose_msg.orientation.y, pose_msg.orientation.z, pose_msg.orientation.w);
+    float angle = tf2::getYaw(q);
+    orientation.x() = cos(angle);
+    orientation.y() = sin(angle);
+    return;
+  }
+
   inline geometry_msgs::msg::Pose toPoseMsg()
   {
     geometry_msgs::msg::Pose pose;
     pose.position.x = position().x();
     pose.position.y = position().y();
     tf2::Quaternion q;
-    // q.setRPY(0, 0, getOrientationAngle());
     q.setEuler(0, 0, getOrientationAngle());
     pose.orientation.x = q.x();
     pose.orientation.y = q.y();
