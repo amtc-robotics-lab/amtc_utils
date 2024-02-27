@@ -40,6 +40,7 @@ private:
   rclcpp::Node * node_;
   std::string resource_type_;
   std::string access_token_;
+  std::string provider_token_; // token representing the resource provider (this node)
 
 
   std::string free_service_name_;

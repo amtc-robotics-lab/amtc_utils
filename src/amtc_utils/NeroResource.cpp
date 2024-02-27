@@ -40,8 +40,9 @@ void NeroResource::registered_cb(const std::shared_future<resource_manager_msgs:
         RCLCPP_ERROR(node_->get_logger(), "Failed to register resource");
       return;
     }
-    access_token_ = response.get()->provider_token.data;
-    RCLCPP_INFO(node_->get_logger(), "Selected %s token is %s", resource_type_.c_str(), access_token_.c_str());
+    provider_token_ = response.get()->provider_token.data;
+
+    RCLCPP_INFO(node_->get_logger(), "Provider for type registered %s , token is %s", resource_type_.c_str(), access_token_.c_str());
     is_registered_ = true;
 }
 
@@ -69,7 +70,7 @@ bool NeroResource::unregister_resource(const rclcpp::Duration &timeout) {
       return false;
     }
     auto request = std::make_shared<resource_manager_msgs::srv::Unregister::Request>();
-    request->token.data = access_token_;
+    request->token.data = provider_token_;
     auto result = unregister_client_->async_send_request(request);
     auto future_status = result.wait_for(timeout.to_chrono<std::chrono::duration<int64_t, std::milli> >());
     if (future_status == std::future_status::ready)
@@ -80,7 +81,9 @@ bool NeroResource::unregister_resource(const rclcpp::Duration &timeout) {
             return false;
         }
 
+        provider_token_ = "";
         access_token_ = "";
+        is_registered_ = false;
         return true;
     }
     else
