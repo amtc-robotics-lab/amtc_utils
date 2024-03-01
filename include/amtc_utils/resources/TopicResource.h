@@ -25,6 +25,8 @@ protected:
   std::string access_token_;
   bool check_access_token_ = false;
   std::mutex data_mutex_;
+  rclcpp::CallbackGroup::SharedPtr callback_group_;
+
 
   public:
   
@@ -33,20 +35,31 @@ protected:
   TopicResource(rclcpp::Node *node, const char* t_topicName)
     :    topic_name_(t_topicName), time_out_duration_(1,0), last_data_time_(0,0,node->get_clock()->get_clock_type()), node_(node)
   {
-    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1));
+      callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+
+rclcpp::SubscriptionOptions options;
+options.callback_group = callback_group_;
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1), options);
+
   }
 
 
   TopicResource(rclcpp::Node *node, const char* t_topicName, double period_seconds)
     :    topic_name_(t_topicName), time_out_duration_(rclcpp::Duration::from_seconds(period_seconds)), last_data_time_(0,0,node->get_clock()->get_clock_type()), node_(node)
   {
-    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
+      callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+rclcpp::SubscriptionOptions options;
+options.callback_group = callback_group_;
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) , options);
   }
 
   TopicResource(rclcpp::Node *node, const char* t_topicName, rclcpp::Duration period)
     :    topic_name_(t_topicName), time_out_duration_(period), last_data_time_(0,0,node->get_clock()->get_clock_type()), node_(node)
   {
-    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) );
+      callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+rclcpp::SubscriptionOptions options;
+options.callback_group = callback_group_;
+    subscription_  = node->create_subscription<T>(t_topicName, 5 , std::bind(&TopicResource<T>::msg_cb, this, std::placeholders::_1) , options);
   }
 
 /**
@@ -124,8 +137,9 @@ void set_timeout_duration(rclcpp::Duration period){
   inline bool is_available()
   {
     std::scoped_lock lock(data_mutex_);
-//    RCLCPP_INFO(node_->get_logger(), "checking availability of topic %s", topic_name_.c_str());
-      return data_ && node_->now()-last_data_time_ < time_out_duration_;
+    bool a = data_ && node_->now()-last_data_time_ < time_out_duration_;
+//    RCLCPP_INFO(node_->get_logger(), "checking availability of topic %s now : %lf ,  last data time : %lf , ret %d , data %ld ", topic_name_.c_str(), node_->now().seconds(), last_data_time_.seconds(), a, (bool)data_);
+      return a;
     
   }
 
