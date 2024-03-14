@@ -20,6 +20,7 @@ bool NeroResourceClient::alloc(const rclcpp::Duration &timeout) {
 
     auto request = std::make_shared<resource_manager_msgs::srv::Alloc::Request>();
     request->resource.type = resource_type_;
+    request->consumer_name = node_->get_name();
     auto future = alloc_client_->async_send_request(request);
     auto future_status = future.wait_for(timeout.to_chrono<std::chrono::duration<int64_t, std::milli> >());
 
