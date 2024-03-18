@@ -33,6 +33,17 @@ class NeroResourceClient:
                                                      srv_name='resource_manager/free',
                                                      callback_group=self._srv_call_cbg)
 
+        self.node.get_logger().info('Creating nero client')
+
+        while not self._cli_alloc_resource.wait_for_service(timeout_sec=1.0):
+            self.node.get_logger().info('Waiting for alloc')
+
+        while not self._cli_free_resource.wait_for_service(timeout_sec=1.0):
+            self.node.get_logger().info('Waiting for free')
+
+        self.node.get_logger().info('Created nero client')
+
+
     def alloc(
             self,
             timeout: float
@@ -50,14 +61,14 @@ class NeroResourceClient:
         alloc_req.resource.type = self.resource_type
 
         if not self._cli_alloc_resource.wait_for_service(timeout_sec=timeout):
-            self.node.get_logger().info('[RESOURCE {0}] Failed because alloc server timeout...')
+            self.node.get_logger().error('[RESOURCE {0}] Failed because alloc server timeout...')
             return False
 
         future = self._cli_alloc_resource.call_async(alloc_req)
         self.node.executor.spin_until_future_complete(future)
 
         if future.result().is_success is False:
-            self.node.get_parameter('[RESOURCE {0}] Failed to allocate resource {0}'.format(self.resource_type))
+            self.node.get_logger().error('[RESOURCE {0}] Failed to allocate resource {0}'.format(self.resource_type))
             return False
 
         self.access_data.data = future.result().token.data
@@ -80,14 +91,14 @@ class NeroResourceClient:
         free_req.token.data = self.access_data.data
 
         if not self._cli_free_resource.wait_for_service(timeout_sec=timeout):
-            self.node.get_logger().info('[RESOURCE {0}] Failed because free server timeout...')
+            self.node.get_logger().error('[RESOURCE {0}] Failed because free server timeout...')
             return False
 
         future = self._cli_free_resource.call_async(free_req)
         self.node.executor.spin_until_future_complete(future)
 
         if future.result().is_success is False:
-            self.node.get_parameter('[RESOURCE {0}] Failed to free resource {0}'.format(self.resource_type))
+            self.node.get_logger().error('[RESOURCE {0}] Failed to free resource {0}'.format(self.resource_type))
             return False
 
         self.access_data.data = ""
