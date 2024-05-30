@@ -64,6 +64,14 @@ public:
     return orientation.getAngle();
   }
 
+  inline Pose2d operator=(const Pose2d& pose_2d)
+  {
+    x() = pose_2d.x();
+    y() = pose_2d.y();
+    orientation = pose_2d.orientation;
+    return *this;
+  }
+
   inline Pose2d operator+(const Vector2d& sum) const
   {
     return Pose2d(position() + sum, orientation);

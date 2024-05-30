@@ -40,6 +40,13 @@ public:
   inline double x() const{return this->operator()(0);}
   inline double y() const{return this->operator()(1);}
 
+  inline Vector2d operator=(const Vector2d& vec)
+  {
+    x() = vec.x();
+    y() = vec.y();
+    return *this;
+  }
+
   inline Vector2d operator+(const Vector2d& sum) const
   {
     return Vector2d(x() + sum.x(), y() + sum.y());
