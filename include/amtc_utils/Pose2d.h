@@ -59,6 +59,11 @@ public:
     return *this;
   }
 
+  inline bool isZero() const 
+  {
+    return orientation.isZero() && Vector2d::isZero();
+  }
+
   inline double getOrientationAngle() const
   {
     return orientation.getAngle();
@@ -204,6 +209,11 @@ public:
   {
     absolute = pos;
     calcThisRelativePosition();
+  }
+  
+  inline bool isZero() const
+  {
+    return origin.isZero() && absolute.isZero() && relative.isZero();
   }
 
   inline void setOrigin(const Pose2d& o)
