@@ -61,7 +61,7 @@ public:
 
   inline bool isZero() const 
   {
-    return orientation.isZero() && Vector2d::isZero();
+    return orientation.x()==1.0 && orientation.y() == 0.0 && Vector2d::isZero();
   }
 
   inline double getOrientationAngle() const

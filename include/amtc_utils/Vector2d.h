@@ -80,7 +80,7 @@ public:
 
   inline bool isZero() const 
   {
-    return x()==0 && y() == 0;
+    return x()==0.0 && y() == 0;
   }
 
   inline Vector2d& operator*=(double factor)
