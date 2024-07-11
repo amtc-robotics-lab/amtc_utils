@@ -42,7 +42,7 @@ void NeroResource::registered_cb(const std::shared_future<resource_manager_msgs:
     }
     provider_token_ = response.get()->provider_token.data;
 
-    RCLCPP_INFO(node_->get_logger(), "Provider for type registered %s , token is %s", resource_type_.c_str(), access_token_.c_str());
+    RCLCPP_INFO(node_->get_logger(), "Provider for type registered %s , token is %s", resource_type_.c_str(), provider_token_.c_str());
     is_registered_ = true;
 }
 
