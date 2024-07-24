@@ -18,7 +18,7 @@
 namespace amtc {
 
 
-  std::string  to_string(const rclcpp::Time &time);
+  std::string  to_string(const rclcpp::Time &time, bool include_ns = false);
 /*
  * std::vector<std::string> &split_string(const std::string &s, char delim, std::vector<std::string> &elems)
  * Description:

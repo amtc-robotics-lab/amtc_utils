@@ -10,19 +10,23 @@
 namespace amtc{
 
 
-  std::string  to_string(const rclcpp::Time &time)
+  std::string  to_string(const rclcpp::Time &time, bool include_ns)
 {
   std::time_t t = time.nanoseconds() / 1000000000;
 
   // Format time_t as string
   char buffer[100];
-  std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", std::localtime(&t));
+  std::strftime(buffer, sizeof(buffer), "%Y-%m-%d_%H-%M-%S", std::localtime(&t));
 
   // Append remaining nanoseconds
-  auto remaining_ns = time.nanoseconds() % 1000000000;
-  std::string ns_str = std::to_string(remaining_ns);
+  if(include_ns)
+  {
+    auto remaining_ns = time.nanoseconds() % 1000000000;
+    std::string ns_str = std::to_string(remaining_ns);
+    return std::string(buffer) + "." + ns_str + "ns";
+  }
 
-  return std::string(buffer) + "." + ns_str + "ns";
+  return std::string(buffer);
 
 }
 
