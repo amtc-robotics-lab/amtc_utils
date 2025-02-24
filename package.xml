@@ -16,6 +16,7 @@
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>resource_manager_msgs</depend>
+  <depend>autonomous_machine_interface</depend>
 
   <export>
     <build_type>ament_cmake</build_type>

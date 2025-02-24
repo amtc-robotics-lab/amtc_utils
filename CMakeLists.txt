@@ -6,12 +6,13 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
 find_package(ament_cmake_auto REQUIRED)
 
-ament_auto_find_build_dependencies(REQUIRED rclcpp tf2 std_msgs resource_manager_msgs rclcpp_lifecycle)
+ament_auto_find_build_dependencies(REQUIRED rclcpp tf2 std_msgs resource_manager_msgs autonomous_machine_interface rclcpp_lifecycle)
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_python REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(resource_manager_msgs REQUIRED)
+find_package(autonomous_machine_interface REQUIRED)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
@@ -19,6 +20,7 @@ ament_export_include_directories(include)
 
 ament_auto_add_library(${PROJECT_NAME} SHARED
         src/${PROJECT_NAME}/Utils.cpp
+        src/${PROJECT_NAME}/HeartbeatResource.cpp
         src/${PROJECT_NAME}/NeroResourceClient.cpp
         src/${PROJECT_NAME}/NeroResource.cpp
 )
@@ -26,6 +28,7 @@ ament_auto_add_library(${PROJECT_NAME} SHARED
 ament_export_dependencies(
         rclcpp
         resource_manager_msgs
+        autonomous_machine_interface
 )
 
 ament_auto_add_executable(resource_checker
