@@ -13,8 +13,9 @@ HeartbeatResource::~HeartbeatResource() {
 
 void HeartbeatResource::activate()
 {
-  publisher_ = node_->create_publisher<HeartbeatMsg>("heartbeat", 10);
-  rclcpp::create_timer(node_, node_->get_clock(), rclcpp::Duration::from_seconds(hearbeat_period_), std::bind(&HeartbeatResource::timer_cb, this));
+  RCLCPP_INFO(node_->get_logger(), "Heartbeat created");
+  publisher_ = node_->create_publisher<HeartbeatMsg>(node_->get_name() + std::string("/heartbeat"), 10);
+  hearbet_timer_ = rclcpp::create_timer(node_, node_->get_clock(), rclcpp::Duration::from_seconds(hearbeat_period_), std::bind(&HeartbeatResource::timer_cb, this));
 }
 
 void HeartbeatResource::configure()
@@ -28,6 +29,8 @@ void HeartbeatResource::timer_cb()
   msg.stamp = node_->get_clock()->now();
   msg.seq = heartbeat_seq_++;
   msg.node_name = node_->get_name();
+
+  // RCLCPP_INFO(node_->get_logger(), "Send Hearbeat");
 
   publisher_->publish(msg);
 }

@@ -23,6 +23,7 @@ private:
   rclcpp::Node * node_;
 
   rclcpp::Publisher<HeartbeatMsg>::SharedPtr publisher_;
+  rclcpp::TimerBase::SharedPtr hearbet_timer_;
 
 	double hearbeat_period_;
   long heartbeat_seq_;
