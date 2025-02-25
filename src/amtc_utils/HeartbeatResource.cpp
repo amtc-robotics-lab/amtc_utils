@@ -30,7 +30,7 @@ void HeartbeatResource::timer_cb()
   msg.seq = heartbeat_seq_++;
   msg.node_name = node_->get_name();
 
-  // RCLCPP_INFO(node_->get_logger(), "Send Hearbeat");
+  // RCLCPP_INFO(node_->get_logger(), "Send Heartbeat");
 
   publisher_->publish(msg);
 }
