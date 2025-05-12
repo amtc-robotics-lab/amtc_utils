@@ -102,7 +102,7 @@ bool NeroResource::alloc_token_cb(resource_manager_msgs::srv::Notify::Request::S
 {
   access_token_ = req->subscriber_token.data;
   res->is_success = true;
-  RCLCPP_INFO(node_->get_logger(), "Selected Body Controller token is %s", access_token_.c_str());
+  RCLCPP_INFO(node_->get_logger(), "Selected %s Controller token is %s", resource_type_.c_str(), access_token_.c_str());
 
 
 
@@ -115,7 +115,7 @@ bool NeroResource::free_token_cb(resource_manager_msgs::srv::Notify::Request::Sh
 
     if (req->subscriber_token.data == access_token_)
     {
-        RCLCPP_INFO(node_->get_logger(), "Freed Body Controller token");
+        RCLCPP_INFO(node_->get_logger(), "Freed %s Controller token", resource_type_.c_str());
     }
     else
     {
