@@ -4,7 +4,6 @@
 
 #pragma once
 #include <rclcpp/rclcpp.hpp>
-#include <rclcpp_lifecycle/lifecycle_node.hpp>
 #include <resource_manager_msgs/msg/resource_type.hpp>
 #include <resource_manager_msgs/srv/free.hpp>
 #include <resource_manager_msgs/srv/alloc.hpp>

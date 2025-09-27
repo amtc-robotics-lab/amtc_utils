@@ -9,9 +9,9 @@
   <buildtool_depend>ament_cmake</buildtool_depend>
   <buildtool_depend>ament_cmake_python</buildtool_depend>
 
+  <build_depend>reflectcpp</build_depend>
   <depend>rclcpp</depend>
   <depend>rclpy</depend>
-  <depend>rclcpp_lifecycle</depend>
   <depend>tf2</depend>
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
