@@ -4,6 +4,8 @@ project(amtc_utils)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
 
+option(ENABLE_PARAMS_HELPER "use to disable param support and dependency on reflect-cpp" ON)
+
 find_package(ament_cmake REQUIRED)
 
 find_package(tf2 REQUIRED)
@@ -16,7 +18,11 @@ find_package(rclcpp REQUIRED)
 find_package(rclpy REQUIRED)
 find_package(resource_manager_msgs REQUIRED)
 find_package(autonomous_machine_interface REQUIRED)
-find_package(reflectcpp REQUIRED)
+
+
+if (ENABLE_PARAMS_HELPER)
+        find_package(reflectcpp REQUIRED)
+endif()
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
@@ -37,9 +43,15 @@ ament_target_dependencies(${PROJECT_NAME}
     rclcpp
     autonomous_machine_interface
     resource_manager_msgs
-    reflectcpp
 )
-target_link_libraries(${PROJECT_NAME} reflectcpp::reflectcpp)
+
+if (ENABLE_PARAMS_HELPER)
+   ament_target_dependencies(${PROJECT_NAME}
+       reflectcpp
+   )
+   target_link_libraries(${PROJECT_NAME} reflectcpp::reflectcpp)
+endif()
+
 
 
 
@@ -50,6 +62,11 @@ ament_export_dependencies(
         resource_manager_msgs
         autonomous_machine_interface
 )
+if (ENABLE_PARAMS_HELPER)
+        ament_export_dependencies(
+                reflectcpp
+        )
+endif()
 
 add_executable(resource_checker
         src/examples/resource_checker.cpp)
@@ -61,17 +78,19 @@ target_include_directories(resource_checker
         $<INSTALL_INTERFACE:include>)
 
 
-add_executable(params_example
-        src/examples/params_example.cpp)
-ament_target_dependencies(params_example
-        rclcpp
-        reflectcpp
-        std_msgs)
-target_link_libraries(params_example reflectcpp::reflectcpp)
-target_include_directories(params_example
-        PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>)
+if (ENABLE_PARAMS_HELPER)
+        add_executable(params_example
+                src/examples/params_example.cpp)
+        ament_target_dependencies(params_example
+                rclcpp
+                reflectcpp
+                std_msgs)
+        target_link_libraries(params_example reflectcpp::reflectcpp)
+        target_include_directories(params_example
+                PUBLIC
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                $<INSTALL_INTERFACE:include>)
+endif()
 
 # Install Python modules
 ament_python_install_package(${PROJECT_NAME})
@@ -81,7 +100,12 @@ install(
         DIRECTORY include/
         DESTINATION include/
 )
-install(TARGETS resource_checker params_example
+if (ENABLE_PARAMS_HELPER)
+        install(TARGETS params_example
+            DESTINATION lib/${PROJECT_NAME})
+endif()
+
+install(TARGETS resource_checker 
     DESTINATION lib/${PROJECT_NAME})
 
 install(

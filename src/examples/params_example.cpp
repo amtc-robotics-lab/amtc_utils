@@ -4,9 +4,9 @@
 #include <rclcpp/node.hpp>
 #include <rclcpp/parameter.hpp>
 #include <rclcpp/parameter_event_handler.hpp>
+#include <rclcpp/rate.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rfl/enums.hpp>
-#include <rfl/json/write.hpp>
 
 
 template <typename T>
@@ -90,8 +90,8 @@ public:
         if ( params_have_changed_){
             config_ = amtc::get_params<Config>(get_node_parameters_interface());
         }
-        std::string jsonpar = rfl::json::write(config_);
-        std::cout <<  "params::  " << jsonpar <<"\n";
+        // std::string jsonpar = rfl::json::write(config_);
+        // std::cout <<  "params::  " << jsonpar <<"\n";
         // std::cout << "\n";
     }
 
@@ -123,11 +123,14 @@ int main(int argc, char** argv){
             double d;
             int i;
             std::vector<double> da;
+            rclcpp::Duration duration;
             EnumTest color;
             struct SubConfig{
                 int test_int;
                 double test_double;
             } sub_config;
+        Config():duration(0,0)
+            {};
         }config_;
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<ParamsExample>());
@@ -136,8 +139,6 @@ int main(int argc, char** argv){
     config_.color =  EnumTest::green;
     enum Color{red, green} color= Color::green;
     std::cout << rfl::enum_to_string(color)<< "\n";
-    std::string jsonstr = rfl::json::write(config_);
-    std::cout << jsonstr<< "\n";
     rclcpp::shutdown();
 
     return 0;
