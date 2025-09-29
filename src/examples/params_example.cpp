@@ -1,5 +1,5 @@
 
-#include "amtc_utils/params/params_helper.h"
+#include "amtc_utils/params_helper.h"
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rclcpp/parameter.hpp>
@@ -75,7 +75,7 @@ public:
 
         parameter_callback_handle_ = add_on_set_parameters_callback([this](const std::vector<rclcpp::Parameter> &changes){
 
-            auto retval = amtc::validate_change<Config>(config_, changes);
+            auto retval = amtc::validate_param_changes<Config>(config_, changes);
             if (retval.successful){
                 params_have_changed_ = true;
             }

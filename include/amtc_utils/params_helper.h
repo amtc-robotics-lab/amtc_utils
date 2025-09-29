@@ -203,7 +203,7 @@ namespace amtc{
     }
 
     template< typename T>
- rcl_interfaces::msg::SetParametersResult     validate_change(T prev_value, const std::vector<rclcpp::Parameter> &parameter_changes)
+ rcl_interfaces::msg::SetParametersResult     validate_param_changes(T prev_value, const std::vector<rclcpp::Parameter> &parameter_changes)
     {
         rcl_interfaces::msg::SetParametersResult retval;
         const auto view = rfl::to_view(prev_value);
