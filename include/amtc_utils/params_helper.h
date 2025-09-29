@@ -1,7 +1,6 @@
 #pragma once
 #include <exception>
 #include <rcl_interfaces/msg/detail/set_parameters_result__struct.hpp>
-#include <rclcpp/duration.hpp>
 #include <rclcpp/exceptions/exceptions.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/parameter.hpp>
@@ -67,10 +66,6 @@ namespace amtc{
                 }else{
                     throw rclcpp::exceptions::InvalidParameterValueException("Parameter "+ name+"does not match enum requirement");
                 }
-            } else if constexpr(std::is_same_v<field_type,rclcpp::Duration>){
-
-                auto value = parameter_interface->declare_parameter(name,rclcpp::ParameterType::PARAMETER_DOUBLE);
-                *field.value() = rclcpp::Duration::from_seconds(value.get<double>());
             }
             else {
                 *field.value() = declare_params<field_type>(parameter_interface, name);
@@ -113,7 +108,6 @@ namespace amtc{
                 std::is_same_v<field_type,std::vector<std::string>> ||
                 std::is_same_v<field_type,std::vector<bool>> ||
                 std::is_same_v<field_type,std::vector<uint8_t>> ||
-                std::is_same_v<field_type,std::vector<std::string>> ||
                 std::is_same_v<field_type,std::vector<std::string>>
             ){
                 // field.value() = parameter_interface->declare_parameter<field_type>(name);
@@ -133,10 +127,6 @@ namespace amtc{
                 else{
                     throw rclcpp::exceptions::InvalidParameterValueException("enum "+name+" did not match any enum option");
                 }
-
-            } else if constexpr(std::is_same_v<field_type,rclcpp::Duration>){
-
-                *field.value() = rclcpp::Duration::from_seconds(parameter_interface->get_parameter(name).as_double());
             }
             else {
                 *field.value() = get_params<field_type>(parameter_interface, name);
@@ -176,7 +166,6 @@ namespace amtc{
                         std::is_same_v<field_type,std::vector<std::string>> ||
                         std::is_same_v<field_type,std::vector<bool>> ||
                         std::is_same_v<field_type,std::vector<uint8_t>> ||
-                        std::is_same_v<field_type,std::vector<std::string>> ||
                         std::is_same_v<field_type,std::vector<std::string>>
                     ){
                         rclcpp::ParameterValue value{field_type{}};
