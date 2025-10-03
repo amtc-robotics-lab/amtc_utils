@@ -63,6 +63,15 @@ void print_fields(const std::string base_name=""){
 
 int N=10;
 
+std::ostream& operator<<(std::ostream& os, const std::map<std::string, rclcpp::Parameter>& map) {
+    os << "Parameters: { ";
+    for(auto& [key, value]: map){ 
+        os<< key << " , "  << value;
+    }
+    os <<"\n";
+    return os; // Return the ostream reference
+}
+
 class ParamsExample : public rclcpp::Node{
 
 public:

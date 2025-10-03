@@ -1,6 +1,6 @@
 #pragma once
 #include <exception>
-#include <rcl_interfaces/msg/detail/set_parameters_result__struct.hpp>
+#include <rcl_interfaces/msg/detail/parameter_descriptor__struct.hpp>
 #include <rclcpp/exceptions/exceptions.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/parameter.hpp>
@@ -14,6 +14,9 @@
 #include <type_traits>
 
 namespace amtc{
+
+    std::vector<rclcpp::Parameter> declare_parameters(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameter_interface, std::vector<rcl_interfaces::msg::ParameterDescriptor> descriptors, std::string base_name ="", bool required = true);
+ 
 
     template< typename T>
     T declare_params(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameter_interface, std::string base_name ="")

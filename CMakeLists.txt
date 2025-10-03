@@ -34,6 +34,7 @@ add_library(${PROJECT_NAME} SHARED
         src/${PROJECT_NAME}/HeartbeatResource.cpp
         src/${PROJECT_NAME}/NeroResourceClient.cpp
         src/${PROJECT_NAME}/NeroResource.cpp
+        src/${PROJECT_NAME}/params_helper.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
