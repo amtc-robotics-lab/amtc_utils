@@ -2,7 +2,7 @@ params_example:
     ros__parameters:
         str_param: "test_string"
         d: 2.0
-        i: 1
+        i: 100
         da: [1.0, 2.2, 3.0]
         duration: 10.0
         color: red

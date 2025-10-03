@@ -18,6 +18,49 @@ namespace amtc{
 
     std::vector<rclcpp::Parameter> declare_parameters(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameter_interface, std::vector<rcl_interfaces::msg::ParameterDescriptor> descriptors, std::string base_name ="", bool required = true);
 
+    template<typename T>
+    concept is_param = std::is_same_v<T,int> ||
+                    std::is_same_v<T,double> ||
+                    std::is_same_v<T,bool> ||
+                    std::is_same_v<T,std::string> ||
+                    std::is_same_v<T,std::vector<int>> ||
+                    std::is_same_v<T,std::vector<double>> ||
+                    std::is_same_v<T,std::vector<std::string>> ||
+                    std::is_same_v<T,std::vector<bool>> ||
+                    std::is_same_v<T,std::vector<uint8_t>> ||
+                    std::is_same_v<T,std::vector<std::string>> ||
+                    std::is_same_v<T,std::vector<std::string>>;
+
+
+
+    template<typename T>
+    concept has_reflection_type_defined = requires{
+        typename T::ReflectionType;
+    };
+
+    template<typename T>
+    concept has_type_defined = requires{
+        typename T::Type;
+    };
+
+    template<typename T>
+    concept is_convertible_to_param = is_param<T> ||
+    ( has_type_defined<T> && is_param<typename T::Type>);
+
+    template<typename T>
+    concept has_enum_type = has_type_defined<T> && std::is_enum_v<typename  T::Type>;
+
+    template<typename T>
+   auto get_param_typeinfo(){
+    if constexpr (has_reflection_type_defined<T>) {
+        return std::type_identity<typename T::ReflectionType>{};
+    }    else     if constexpr (has_type_defined<T>) {
+         return std::type_identity<typename T::Type>{};
+     }else{
+     return std::type_identity<T>{};
+     }
+   };
+
     template<typename EnumType>
     std::string print_enum_names(){
         std::stringstream ss;
@@ -36,7 +79,9 @@ namespace amtc{
         const auto view = rfl::to_view(retval);
         view.apply([&parameter_interface, &base_name]<typename Field>( const Field& field){
 
-            using field_type = std::remove_pointer_t<typename Field::Type>;
+
+            using original_type = std::remove_pointer_t<typename Field::Type>;
+            using field_type = decltype(get_param_typeinfo< std::remove_pointer_t<typename Field::Type> >())::type;
 
             std::string  name;
             if (base_name!="" ){
@@ -52,26 +97,17 @@ namespace amtc{
 
 
 
-            if constexpr( std::is_same_v<field_type,int> ||
-                std::is_same_v<field_type,double> ||
-                std::is_same_v<field_type,bool> ||
-                std::is_same_v<field_type,std::string> ||
-                std::is_same_v<field_type,std::vector<int>> ||
-                std::is_same_v<field_type,std::vector<double>> ||
-                std::is_same_v<field_type,std::vector<std::string>> ||
-                std::is_same_v<field_type,std::vector<bool>> ||
-                std::is_same_v<field_type,std::vector<uint8_t>> ||
-                std::is_same_v<field_type,std::vector<std::string>> ||
-                std::is_same_v<field_type,std::vector<std::string>>
+            if constexpr( is_param<field_type>
             ){
                 // field.value() = parameter_interface->declare_parameter<field_type>(name);
-                rclcpp::ParameterValue value{field_type{}};
                 try{
-                *field.value() = parameter_interface->declare_parameter(name , value.get_type()).get<field_type>();
+                    rclcpp::ParameterValue value{field_type{}};
+                    *field.value() = parameter_interface->declare_parameter(name , value.get_type()).get<field_type>();
                 }catch (const rclcpp::ParameterTypeException &) {
                    throw rclcpp::exceptions::UninitializedStaticallyTypedParameterException(name);
                 }
-            }else if constexpr(std::is_enum<field_type>()){
+            }
+            else if constexpr(std::is_enum_v<field_type>){
 
                 auto value = parameter_interface->declare_parameter(name,rclcpp::ParameterType::PARAMETER_STRING);
                 auto result = rfl::string_to_enum<field_type>(value.get<std::string>());
@@ -98,7 +134,9 @@ namespace amtc{
         const auto view = rfl::to_view(retval);
         view.apply([&parameter_interface, &base_name]<typename Field>( const Field& field){
 
-            using field_type = std::remove_pointer_t<typename Field::Type>;
+            using field_type = decltype(get_param_typeinfo< std::remove_pointer_t<typename Field::Type> >())::type;
+
+
 
             std::string  name;
             if (base_name!="" ){
@@ -113,21 +151,18 @@ namespace amtc{
             name.append(Field::name());
 
 
-            if constexpr( std::is_same_v<field_type,int> ||
-                std::is_same_v<field_type,double> ||
-                std::is_same_v<field_type,bool> ||
-                std::is_same_v<field_type,std::string> ||
-                std::is_same_v<field_type,std::vector<int>> ||
-                std::is_same_v<field_type,std::vector<double>> ||
-                std::is_same_v<field_type,std::vector<std::string>> ||
-                std::is_same_v<field_type,std::vector<bool>> ||
-                std::is_same_v<field_type,std::vector<uint8_t>> ||
-                std::is_same_v<field_type,std::vector<std::string>>
+            if constexpr( is_convertible_to_param<field_type>
             ){
                 // field.value() = parameter_interface->declare_parameter<field_type>(name);
-                rclcpp::ParameterValue value{field_type{}};
                 try{
-                *field.value() = parameter_interface->get_parameter(name).get_value<field_type>();
+                    if constexpr (has_type_defined<field_type>) {
+                        rclcpp::ParameterValue value{typename field_type::Type{}};
+                        *field.value() = parameter_interface->get_parameter(name).get_value<typename field_type::Type>();
+
+                    }else{
+                        rclcpp::ParameterValue value{field_type{}};
+                        *field.value() = parameter_interface->get_parameter(name).get_value<field_type>();
+                    }
                 }catch (const rclcpp::ParameterTypeException &) {
                    throw rclcpp::exceptions::UninitializedStaticallyTypedParameterException(name);
                 }
@@ -154,7 +189,7 @@ namespace amtc{
 
     template <typename Field>
     void process_parameter_change(const Field& field, const rclcpp::Parameter &change, std::string base_name=""){
-        using field_type = std::remove_pointer_t<typename Field::Type>;
+        using field_type = decltype(get_param_typeinfo< std::remove_pointer_t<typename Field::Type> >())::type;
         std::string  name;
         if (base_name!="" ){
             if (base_name.back() == '.'){
@@ -171,23 +206,25 @@ namespace amtc{
 
 
 
-                    if constexpr( std::is_same_v<field_type,int> ||
-                        std::is_same_v<field_type,double> ||
-                        std::is_same_v<field_type,bool> ||
-                        std::is_same_v<field_type,std::string> ||
-                        std::is_same_v<field_type,std::vector<int>> ||
-                        std::is_same_v<field_type,std::vector<double>> ||
-                        std::is_same_v<field_type,std::vector<std::string>> ||
-                        std::is_same_v<field_type,std::vector<bool>> ||
-                        std::is_same_v<field_type,std::vector<uint8_t>> ||
-                        std::is_same_v<field_type,std::vector<std::string>>
+
+                    if constexpr( is_convertible_to_param<field_type>
                     ){
-                        rclcpp::ParameterValue value{field_type{}};
+
                         if (change.get_name() == name){
-                            if (change.get_type() == value.get_type()){
-                                *field.value() = change.get_parameter_value().get<field_type>();
+                            if constexpr (has_type_defined<field_type>) {
+                                rclcpp::ParameterValue value{typename field_type::Type{}};
+                                if (change.get_type() == value.get_type()){
+                                    *field.value() = change.get_parameter_value().get<typename field_type::Type>();
+                                }else{
+                                    throw  rclcpp::ParameterTypeException(value.get_type(),change.get_type());
+                                }
                             }else{
-                                throw  rclcpp::ParameterTypeException(value.get_type(),change.get_type());
+                                rclcpp::ParameterValue value{field_type{}};
+                                if (change.get_type() == value.get_type()){
+                                    *field.value() = change.get_parameter_value().get<field_type>();
+                                }else{
+                                    throw  rclcpp::ParameterTypeException(value.get_type(),change.get_type());
+                                }
                             }
                         }
                     }
@@ -206,8 +243,8 @@ namespace amtc{
                     }
                     else {
                         const auto view = rfl::to_view(*field.value());
-                        view.apply([&change]<typename F> (const F& field){
-                            process_parameter_change(field, change);
+                        view.apply([&change, &name]<typename F> (const F& field){
+                            process_parameter_change(field, change, name);
                         });
 
 
@@ -221,9 +258,6 @@ namespace amtc{
         const auto view = rfl::to_view(prev_value);
         try{
         for (auto &change: parameter_changes){
-
-
-
             view.apply([&change]<typename Field>( const Field& field){
                 process_parameter_change(field, change);
             });

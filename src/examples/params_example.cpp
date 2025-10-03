@@ -1,13 +1,19 @@
 
 #include "amtc_utils/params_helper.h"
+#include <exception>
 #include <rclcpp/logging.hpp>
 #include <rclcpp/node.hpp>
 #include <rclcpp/parameter.hpp>
 #include <rclcpp/parameter_event_handler.hpp>
 #include <rclcpp/rate.hpp>
 #include <rclcpp/rclcpp.hpp>
+#include <rfl/Rename.hpp>
+#include <rfl/Validator.hpp>
 #include <rfl/enums.hpp>
 #include <rfl/json.hpp>
+#include <rfl/json/Writer.hpp>
+#include <stdexcept>
+#include <type_traits>
 
 
 
@@ -26,10 +32,12 @@ public:
             auto retval = amtc::validate_param_changes<Config>(config_, changes);
             if (retval.successful){
                 params_have_changed_ = true;
+                RCLCPP_INFO(get_logger(), "accepted parameter changes");
             }
             else{
                 RCLCPP_WARN(get_logger(), "Ignoring parameter change with errors: %s" ,retval.reason.c_str());
             }
+
             return retval;
         });
     }
@@ -50,8 +58,8 @@ public:
     enum struct EnumTest{red, green, orange};
     struct Config{
         std::string str_param;
-        double d;
-        int i;
+        rfl::Rename<"d", double> d_new;
+        rfl::Validator<int, rfl::Minimum<10>> i=10; // needs to have a valid default ( still won't have a default value from ROS point of view, ros wont know about the range yet , hopefully in the future)
         std::vector<double> da;
         double duration;
         EnumTest color;
@@ -73,6 +81,8 @@ int main(int argc, char** argv){
     rclcpp::spin(std::make_shared<ParamsExample>());
 
     rclcpp::shutdown();
+
+
 
     return 0;
 }

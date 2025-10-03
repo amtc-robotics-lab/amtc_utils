@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16.3...3.20)
 project(amtc_utils)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
+set(CMAKE_BUILD_TYPE Debug)
 
 option(ENABLE_PARAMS_HELPER "use to disable param support and dependency on reflect-cpp" ON)
 
@@ -21,7 +21,7 @@ find_package(autonomous_machine_interface REQUIRED)
 
 
 if (ENABLE_PARAMS_HELPER)
-        find_package(reflectcpp REQUIRED)
+    find_package(reflectcpp REQUIRED)
 endif()
 
 
@@ -47,10 +47,10 @@ ament_target_dependencies(${PROJECT_NAME}
 )
 
 if (ENABLE_PARAMS_HELPER)
-   ament_target_dependencies(${PROJECT_NAME}
+    ament_target_dependencies(${PROJECT_NAME}
        reflectcpp
    )
-   target_link_libraries(${PROJECT_NAME} reflectcpp::reflectcpp)
+    target_link_libraries(${PROJECT_NAME} reflectcpp::reflectcpp)
 endif()
 
 
@@ -64,7 +64,7 @@ ament_export_dependencies(
         autonomous_machine_interface
 )
 if (ENABLE_PARAMS_HELPER)
-        ament_export_dependencies(
+    ament_export_dependencies(
                 reflectcpp
         )
 endif()
@@ -80,14 +80,14 @@ target_include_directories(resource_checker
 
 
 if (ENABLE_PARAMS_HELPER)
-        add_executable(params_example
+    add_executable(params_example
                 src/examples/params_example.cpp)
-        ament_target_dependencies(params_example
+    ament_target_dependencies(params_example
                 rclcpp
                 reflectcpp
                 std_msgs)
-        target_link_libraries(params_example reflectcpp::reflectcpp)
-        target_include_directories(params_example
+    target_link_libraries(params_example reflectcpp::reflectcpp)
+    target_include_directories(params_example
                 PUBLIC
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                 $<INSTALL_INTERFACE:include>)
@@ -102,11 +102,11 @@ install(
         DESTINATION include/
 )
 if (ENABLE_PARAMS_HELPER)
-        install(TARGETS params_example
+    install(TARGETS params_example
             DESTINATION lib/${PROJECT_NAME})
 endif()
 
-install(TARGETS resource_checker 
+install(TARGETS resource_checker
     DESTINATION lib/${PROJECT_NAME})
 
 install(
