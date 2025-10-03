@@ -7,70 +7,9 @@
 #include <rclcpp/rate.hpp>
 #include <rclcpp/rclcpp.hpp>
 #include <rfl/enums.hpp>
+#include <rfl/json.hpp>
 
 
-template <typename T>
-void print_fields(const std::string base_name=""){
-    T retval;
-    const auto view = rfl::to_view(retval);
-    view.apply([base_name]<typename Field>( const Field& field){
-        using field_type = std::remove_pointer_t<typename Field::Type>;
-
-        field_type a ;
-        std::string  name;
-        if (base_name!="" ){
-            if (base_name.back() == '.'){
-                name = base_name ;
-
-            }else{
-                name = (base_name + '.');
-
-            }
-        }
-        name.append(Field::name());
-
-
-        std::cout << "name : " << name << " val" <<"\n";
-        if constexpr( std::is_same_v<field_type,int>){
-            std::cout << name <<  " is an int\n";
-        }
-        else if constexpr (std::is_same_v<field_type, double>) {
-
-            std::cout << name <<  " is a double\n";
-        }
-        else if constexpr (std::is_same_v<field_type, std::string>) {
-
-            std::cout << name <<  " is a string\n";
-        }
-        else if constexpr (std::is_same_v<field_type, std::vector<double>>) {
-
-            std::cout << name <<  " is a double array\n";
-        }
-        else if constexpr (std::is_same_v<field_type, std::vector<int>>) {
-
-            std::cout << name <<  " is a int array\n";
-        }
-        else {
-            std::cout << name <<  " is a unknown , interating into it\n";
-            print_fields<field_type>(name);
-
-        }
-
-
-    });
-
-}
-
-int N=10;
-
-std::ostream& operator<<(std::ostream& os, const std::map<std::string, rclcpp::Parameter>& map) {
-    os << "Parameters: { ";
-    for(auto& [key, value]: map){ 
-        os<< key << " , "  << value;
-    }
-    os <<"\n";
-    return os; // Return the ostream reference
-}
 
 class ParamsExample : public rclcpp::Node{
 
@@ -99,25 +38,29 @@ public:
         if ( params_have_changed_){
             config_ = amtc::get_params<Config>(get_node_parameters_interface());
         }
-        // std::string jsonpar = rfl::json::write(config_);
-        // std::cout <<  "params::  " << jsonpar <<"\n";
-        // std::cout << "\n";
+        std::string jsonpar = rfl::json::write(config_);
+        std::cout <<  "params::  " << jsonpar <<"\n";
+        std::cout << "\n";
     }
 
     rclcpp::TimerBase::SharedPtr timer_;
     rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr parameter_callback_handle_;
     bool params_have_changed_ = false;
 
-    enum struct EnumTest{red, green , orange};
+    enum struct EnumTest{red, green, orange};
     struct Config{
         std::string str_param;
         double d;
         int i;
         std::vector<double> da;
+        double duration;
         EnumTest color;
+
         struct SubConfig{
             int test_int;
             double test_double;
+            enum Mode{autonomous, manual, teleop, assisted}
+            mode;
         } sub_config;
     }config_;
 };
@@ -126,28 +69,9 @@ public:
 
 int main(int argc, char** argv){
 
-        enum struct EnumTest{red, green , orange};
-        struct Config{
-            std::string str_param;
-            double d;
-            int i;
-            std::vector<double> da;
-            rclcpp::Duration duration;
-            EnumTest color;
-            struct SubConfig{
-                int test_int;
-                double test_double;
-            } sub_config;
-        Config():duration(0,0)
-            {};
-        }config_;
     rclcpp::init(argc, argv);
     rclcpp::spin(std::make_shared<ParamsExample>());
 
-    config_.i = 30;
-    config_.color =  EnumTest::green;
-    enum Color{red, green} color= Color::green;
-    std::cout << rfl::enum_to_string(color)<< "\n";
     rclcpp::shutdown();
 
     return 0;
