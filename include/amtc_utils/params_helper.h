@@ -11,12 +11,23 @@
 #include <rfl/enums.hpp>
 #include <rfl/to_view.hpp>
 #include <rfl/visit.hpp>
+#include <sstream>
 #include <type_traits>
 
 namespace amtc{
 
     std::vector<rclcpp::Parameter> declare_parameters(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameter_interface, std::vector<rcl_interfaces::msg::ParameterDescriptor> descriptors, std::string base_name ="", bool required = true);
- 
+
+    template<typename EnumType>
+    std::string print_enum_names(){
+        std::stringstream ss;
+        ss<<"{";
+        rfl::get_enumerators<EnumType>().apply([&ss](const auto &field) {
+            ss<< field.name() << ",";
+        });
+        ss <<"}";
+        return ss.str();
+    }
 
     template< typename T>
     T declare_params(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr parameter_interface, std::string base_name ="")
@@ -67,7 +78,7 @@ namespace amtc{
                 if (result){
                     *field.value() = *result;
                 }else{
-                    throw rclcpp::exceptions::InvalidParameterValueException("Parameter "+ name+"does not match enum requirement");
+                    throw rclcpp::exceptions::InvalidParameterValueException(" Parameter "+ name+ " is an enum but  "+name+" does not match any enum option, options are "+ print_enum_names<field_type>());
                 }
             }
             else {
@@ -128,7 +139,7 @@ namespace amtc{
                     *field.value() = *value;
                 }
                 else{
-                    throw rclcpp::exceptions::InvalidParameterValueException("enum "+name+" did not match any enum option");
+                    throw rclcpp::exceptions::InvalidParameterValueException(" Parameter "+ name+ " is an enum but  "+name+" does not match any enum option, options are "+ print_enum_names<field_type>());
                 }
             }
             else {
@@ -188,7 +199,7 @@ namespace amtc{
                                     *field.value() = *value;
                                 }
                                 else{
-                                    throw rclcpp::exceptions::InvalidParameterValueException("enum "+name+" did not match any enum option");
+                                    throw rclcpp::exceptions::InvalidParameterValueException(" Parameter "+ name+ " is an enum but  "+name+" does not match any enum option, options are "+ print_enum_names<field_type>());
                                 }
                         }
 
