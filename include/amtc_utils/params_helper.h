@@ -155,14 +155,8 @@ namespace amtc{
             ){
                 // field.value() = parameter_interface->declare_parameter<field_type>(name);
                 try{
-                    if constexpr (has_type_defined<field_type>) {
-                        rclcpp::ParameterValue value{typename field_type::Type{}};
-                        *field.value() = parameter_interface->get_parameter(name).get_value<typename field_type::Type>();
-
-                    }else{
-                        rclcpp::ParameterValue value{field_type{}};
-                        *field.value() = parameter_interface->get_parameter(name).get_value<field_type>();
-                    }
+                    rclcpp::ParameterValue value{field_type{}};
+                    *field.value() = parameter_interface->get_parameter(name).get_value<field_type>();
                 }catch (const rclcpp::ParameterTypeException &) {
                    throw rclcpp::exceptions::UninitializedStaticallyTypedParameterException(name);
                 }
@@ -211,20 +205,11 @@ namespace amtc{
                     ){
 
                         if (change.get_name() == name){
-                            if constexpr (has_type_defined<field_type>) {
-                                rclcpp::ParameterValue value{typename field_type::Type{}};
-                                if (change.get_type() == value.get_type()){
-                                    *field.value() = change.get_parameter_value().get<typename field_type::Type>();
-                                }else{
-                                    throw  rclcpp::ParameterTypeException(value.get_type(),change.get_type());
-                                }
+                            rclcpp::ParameterValue value{field_type{}};
+                            if (change.get_type() == value.get_type()){
+                                *field.value() = change.get_parameter_value().get<field_type>();
                             }else{
-                                rclcpp::ParameterValue value{field_type{}};
-                                if (change.get_type() == value.get_type()){
-                                    *field.value() = change.get_parameter_value().get<field_type>();
-                                }else{
-                                    throw  rclcpp::ParameterTypeException(value.get_type(),change.get_type());
-                                }
+                                throw  rclcpp::ParameterTypeException(value.get_type(),change.get_type());
                             }
                         }
                     }
