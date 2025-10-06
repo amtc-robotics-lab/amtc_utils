@@ -65,8 +65,11 @@ public:
         10; // needs to have a valid default ( still won't have a default value
             // from ROS point of view, ros wont know about the range yet ,
             // hopefully in the future)
+
     std::vector<double> da;
-    double duration;
+    rfl::Validator<double,amtc::RosRange< 0.0, 10.0>> duration;
+    rfl::Validator<double,amtc::RosRange< 0.0, 10.0, 1.0>> range_test_0;
+    rfl::Validator<int,amtc::RosRange< 0, 20, 7>> range_test_int_0;
     EnumTest color;
 
     struct SubConfig {

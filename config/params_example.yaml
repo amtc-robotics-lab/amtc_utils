@@ -5,6 +5,8 @@ params_example:
         i: 100
         da: [1.0, 2.2, 3.0]
         duration: 10.0
+        range_test_0: 1.0
+        range_test_int_0: 0
         color: red
         sub_config:
             test_int: 20

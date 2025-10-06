@@ -1,5 +1,8 @@
 #pragma once
+#include <concepts>
 #include <exception>
+#include <rcl_interfaces/msg/detail/floating_point_range__struct.hpp>
+#include <rcl_interfaces/msg/detail/integer_range__struct.hpp>
 #include <rcl_interfaces/msg/detail/parameter_descriptor__struct.hpp>
 #include <rclcpp/exceptions/exceptions.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
@@ -9,12 +12,95 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rfl.hpp>
 #include <rfl/enums.hpp>
+#include <rfl/parsing/schema/ValidationType.hpp>
 #include <rfl/to_view.hpp>
 #include <rfl/visit.hpp>
+#include <rfl/internal/is_validator.hpp>
 #include <sstream>
 #include <type_traits>
 
 namespace amtc {
+
+
+template <auto _minimum, auto _maximum, auto _step = 0>
+  struct RosRange {
+      static constexpr auto minimum =  _minimum;
+      static constexpr auto maximum =  _maximum;
+      static constexpr auto step =  _step;
+  template <class T>
+  static rfl::Result<T> validate(T _value) noexcept {
+      static constexpr T minimum =  static_cast<T>(_minimum);
+      static constexpr T maximum =  static_cast<T>(_maximum);
+      static constexpr T step =  static_cast<T>(_step);
+    if (_value < minimum || _value > maximum) {
+      std::stringstream stream;
+      stream << "Value outside of expected range of [" << minimum << " , "
+             << maximum << "], but got " << _value << ".";
+      return rfl::error(stream.str());
+    }else if constexpr (step!=0) {
+        if constexpr (std::is_floating_point_v<T>) {
+            if (_value!=maximum && std::remainder((_value-minimum), step) !=0){
+                std::stringstream stream;
+                stream << "value "<< _value << " does not comply with step restriction min,max,step: "<<
+                       minimum << " , " << maximum << " ,  " << step << ".";
+                return rfl::error(stream.str());
+
+            }
+        }else {
+            if (_value!=maximum && ((_value-minimum) %step) !=0){
+                std::stringstream stream;
+                stream << "value "<< _value << " does not comply with step restriction min,max,step: "<<
+                    minimum << " , " << maximum << " ,  " << step << ".";
+                return rfl::error(stream.str());
+
+            }
+        }
+
+    }
+
+    return _value;
+  }
+
+  template <class T>
+  static rfl::parsing::schema::ValidationType to_schema() {
+    using ValidationType = rfl::parsing::schema::ValidationType;
+    const auto min_value =
+        std::is_same_v<T,double>
+            ? rfl::Variant<double, int>(static_cast<double>(_minimum))
+            : rfl::Variant<double, int>(static_cast<int>(_minimum));
+    rfl::parsing::schema::ValidationType min_validation_type{.variant_=rfl::parsing::schema::ValidationType::Minimum{min_value}};
+
+    const auto max_value =
+        std::is_same_v<T,int>
+            ? rfl::Variant<double, int>(static_cast<double>(_maximum))
+            : rfl::Variant<double, int>(static_cast<int>(_maximum));
+    rfl::parsing::schema::ValidationType max_validation_type{.variant_=rfl::parsing::schema::ValidationType::Maximum{max_value}};
+    if constexpr (step==0) {
+
+        return rfl::parsing::schema::ValidationType{.variant_=rfl::parsing::schema::ValidationType::AllOf{.types_{min_validation_type, max_validation_type}}};
+    }else{
+
+        return rfl::parsing::schema::ValidationType{.variant_=rfl::parsing::schema::ValidationType::AllOf{.types_{min_validation_type, max_validation_type}}};
+    }
+
+  }
+};
+
+template <class T>
+class is_ros_range;
+
+template <class T>
+class is_ros_range: public std::false_type{};
+
+template < auto _minimum, auto _maximum, auto step>
+class is_ros_range<RosRange< _minimum, _maximum, step>>: public std::true_type{};
+
+template <class T>
+constexpr bool is_ros_range_v =
+    is_ros_range<std::remove_cvref_t<std::remove_pointer_t<T>>>::value;
+
+
+
 
 std::vector<rclcpp::Parameter> declare_parameters(
     rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
@@ -93,9 +179,34 @@ T declare_params(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
       // field.value() =
       // parameter_interface->declare_parameter<field_type>(name);
       try {
+
         rclcpp::ParameterValue value{field_type{}};
+        rcl_interfaces::msg::ParameterDescriptor descriptor;
+        descriptor.type = value.get_type();
+        if constexpr (rfl::internal::is_validator_v<original_type>){
+            if constexpr (is_ros_range_v<typename original_type::ValidationType>){
+
+                if constexpr (std::is_same_v<typename original_type::ReflectionType,double>){
+                    descriptor.floating_point_range.resize(1);
+                    rcl_interfaces::msg::FloatingPointRange range;
+                    range.from_value = original_type::ValidationType::minimum;
+                    range.to_value = original_type::ValidationType::maximum;
+                    range.step = original_type::ValidationType::step;
+                    descriptor.floating_point_range[0]= range;
+                }else{
+                    descriptor.integer_range.resize(1);
+                    rcl_interfaces::msg::IntegerRange range;
+                    range.from_value = original_type::ValidationType::minimum;
+                    range.to_value = original_type::ValidationType::maximum;
+                    range.step = original_type::ValidationType::step;
+                    descriptor.integer_range[0]= range;
+                }
+
+            }
+
+        }
         *field.value() =
-            parameter_interface->declare_parameter(name, value.get_type())
+            parameter_interface->declare_parameter(name, value.get_type(),descriptor)
                 .get<field_type>();
       } catch (const rclcpp::ParameterTypeException &) {
         throw rclcpp::exceptions::
