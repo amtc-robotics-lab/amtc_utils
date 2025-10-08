@@ -1,9 +1,11 @@
 #pragma once
-#include <concepts>
+
 #include <exception>
-#include <rcl_interfaces/msg/detail/floating_point_range__struct.hpp>
-#include <rcl_interfaces/msg/detail/integer_range__struct.hpp>
 #include <rcl_interfaces/msg/detail/parameter_descriptor__struct.hpp>
+#include <rcl_interfaces/msg/detail/parameter_type__struct.hpp>
+#include <rcl_interfaces/msg/floating_point_range.hpp>
+#include <rcl_interfaces/msg/integer_range.hpp>
+#include <rcl_interfaces/msg/parameter_value.hpp>
 #include <rclcpp/exceptions/exceptions.hpp>
 #include <rclcpp/node_interfaces/node_parameters_interface.hpp>
 #include <rclcpp/parameter.hpp>
@@ -101,12 +103,17 @@ constexpr bool is_ros_range_v =
 
 
 
+std::vector<rclcpp::Parameter> declare_parameters(
+    rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
+        parameter_interface,
+    std::vector<rcl_interfaces::msg::Parameter> default_values,
+    std::string base_name = "");
 
 std::vector<rclcpp::Parameter> declare_parameters(
     rclcpp::node_interfaces::NodeParametersInterface::SharedPtr
         parameter_interface,
     std::vector<rcl_interfaces::msg::ParameterDescriptor> descriptors,
-    std::string base_name = "", bool required = true);
+    std::string base_name = "");
 
 template <typename T>
 concept is_param = std::is_same_v<T, int> || std::is_same_v<T, double> ||
