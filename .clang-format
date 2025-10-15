@@ -1,0 +1,36 @@
+BasedOnStyle: LLVM
+ColumnLimit: 120
+AllowShortLambdasOnASingleLine: Empty
+AlignConsecutiveAssignments:
+  Enabled:         true
+  AcrossEmptyLines: true
+  AcrossComments:  true
+  AlignCompound:   true
+  AlignFunctionPointers: true
+  PadOperators:    true
+AlignConsecutiveBitFields:
+  Enabled:         true
+  AcrossEmptyLines: true
+  AcrossComments:  true
+  AlignCompound:   true
+  AlignFunctionPointers: false
+  PadOperators:    true
+# AlignConsecutiveDeclarations:
+#   Enabled:         true
+#   AcrossEmptyLines: true
+#   AcrossComments:  true
+#   AlignCompound:   true
+#   AlignFunctionPointers: true
+#   PadOperators:    true
+AlignConsecutiveMacros:
+  Enabled:         true
+  AcrossEmptyLines: true
+  AcrossComments:  true
+  AlignCompound:   true
+  AlignFunctionPointers: true
+  PadOperators:    true
+AlignConsecutiveShortCaseStatements:
+  Enabled:         true
+  AcrossEmptyLines: true
+  AcrossComments:  true
+  AlignCaseColons: true

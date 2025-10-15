@@ -73,7 +73,7 @@ public:
     EnumTest color;
 
     struct SubConfig {
-      int test_int;
+      rfl::Validator<int, rfl::Minimum<10>> test_int = 2000;
       double test_double;
       enum Mode { autonomous, manual, teleop, assisted } mode;
     } sub_config;

@@ -35,6 +35,7 @@ add_library(${PROJECT_NAME} SHARED
         src/${PROJECT_NAME}/NeroResourceClient.cpp
         src/${PROJECT_NAME}/NeroResource.cpp
         src/${PROJECT_NAME}/params_helper.cpp
+        src/${PROJECT_NAME}/change_parameters_interface.cpp
 )
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -91,6 +92,18 @@ if (ENABLE_PARAMS_HELPER)
                 PUBLIC
                 $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
                 $<INSTALL_INTERFACE:include>)
+
+    add_executable(params_changer_example
+                src/examples/params_changer_example.cpp)
+    ament_target_dependencies(params_changer_example
+                rclcpp
+                reflectcpp
+                std_msgs)
+        target_link_libraries(params_changer_example reflectcpp::reflectcpp ${PROJECT_NAME})
+    target_include_directories(params_changer_example
+                PUBLIC
+                $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+                $<INSTALL_INTERFACE:include>)
 endif()
 
 # Install Python modules
@@ -102,7 +115,7 @@ install(
         DESTINATION include/
 )
 if (ENABLE_PARAMS_HELPER)
-    install(TARGETS params_example
+    install(TARGETS params_example params_changer_example
             DESTINATION lib/${PROJECT_NAME})
 endif()
 

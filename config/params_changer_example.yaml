@@ -1,0 +1,31 @@
+/**:
+    ros__parameters:
+      params_example:
+            str_param: "test_string"
+            d: 2.0
+            i: 100
+            da: [1.0, 2.2, 3.0]
+            duration: 10.0
+            range_test_0: 1.0
+            range_test_int_0: 0
+            color: red
+            sub_config:
+                test_int: 20
+                test_double: 30.
+                mode: autonomous
+            # other parameter sets  with modifications!
+            heavy:
+                str_param: "heavy"
+                color: orange
+                sub_config:
+                    test_int: 2000
+                    test_double: 30.
+                    mode: autonomous
+            light:
+                str_param: "light"
+                i: 0
+                sub_config:
+                    mode: manual
+            simple:
+                sub_config:
+                   test_double: 120.
