@@ -2,6 +2,7 @@
 #include <amtc_utils/change_parameters_interface.h>
 
 #include <amtc_utils/params_helper.h>
+#include <rclcpp/executors.hpp>
 #include <rclcpp/node.hpp>
 #include <iterator>
 #include <memory>
@@ -51,6 +52,12 @@ ChangeParametersInterface::ChangeParametersInterface(
     : base_interface_(node_base), graph_interface_(node_graph), parameter_interface_(parameter_interface),
       services_interface_(services_interface), logging_interface_(logging_interface), node_name_(node_name),
       parameter_namespaces_(parameter_namespaces) {}
+
+
+std::vector<rclcpp::Parameter>& ChangeParametersInterface::get_parameters(std::string &basename){
+  return parameter_set_.at(basename);
+}
+
 bool ChangeParametersInterface::switch_to_parameters(const std::vector<rclcpp::Parameter> &parameters) {
 
   auto req = std::make_shared<rcl_interfaces::srv::SetParametersAtomically::Request>();
@@ -84,6 +91,32 @@ bool ChangeParametersInterface::switch_to_parameters(const std::string &basename
 
 void ChangeParametersInterface::activate() {
   // we are ready since configure
+  RCLCPP_INFO(logging_interface_->get_logger(), "change param interface activating");
+  auto  wait_for_service = [this] (auto client){
+    while (!client->wait_for_service(1s)) {
+      if (!rclcpp::ok()) {
+        RCLCPP_ERROR(logging_interface_->get_logger(),
+                     "Interrupted while waiting for the service. Exiting.");
+        return;
+      }
+      RCLCPP_INFO(logging_interface_->get_logger(), "Waiting for service %s",
+                  client->get_service_name());
+    }
+      RCLCPP_INFO(logging_interface_->get_logger(), " service %s is ready",
+                  client->get_service_name());
+  };
+  RCLCPP_INFO(logging_interface_->get_logger(), "waiting for services");
+
+  wait_for_service(describe_parameters_client_);
+  wait_for_service(set_parameters_client_);
+  wait_for_service(list_parameters_client_);
+
+
+  RCLCPP_INFO(logging_interface_->get_logger(), "getting descriptions");
+  get_parameter_descriptions();
+  RCLCPP_INFO(logging_interface_->get_logger(), "getting parameters");
+  get_parameter_set();
+  RCLCPP_INFO(logging_interface_->get_logger(), "activated");
 }
 
 void ChangeParametersInterface::configure() {
@@ -101,24 +134,6 @@ void ChangeParametersInterface::configure() {
       rmw_qos_profile_services_default, callback_group_);
 
   
-  auto  wait_for_service = [this] (auto client){
-    while (client->wait_for_service(1s)) {
-      if (!rclcpp::ok()) {
-        RCLCPP_ERROR(logging_interface_->get_logger(),
-                     "Interrupted while waiting for the service. Exiting.");
-        return;
-      }
-      RCLCPP_INFO(logging_interface_->get_logger(), "Waiting for service %s",
-                  client->get_service_name());
-    }
-  };
-  wait_for_service(describe_parameters_client_);
-  wait_for_service(set_parameters_client_);
-  wait_for_service(list_parameters_client_);
-
-
-  get_parameter_descriptions();
-  get_parameter_set();
 }
 
 void ChangeParametersInterface::get_parameter_set() {
@@ -157,15 +172,30 @@ void ChangeParametersInterface::get_parameter_set() {
 void ChangeParametersInterface::get_parameter_descriptions() {
   auto req                       = std::make_shared<rcl_interfaces::srv::ListParameters::Request>();
   req->depth                     = rcl_interfaces::srv::ListParameters_Request::DEPTH_RECURSIVE;
+  RCLCPP_INFO(logging_interface_->get_logger(), "listing params");
+  
   auto future                    = list_parameters_client_->async_send_request(req);
+  RCLCPP_INFO(logging_interface_->get_logger(), "waiting");
+  while (!(future.wait_for(0.1s) == std::future_status::ready)) {
+    RCLCPP_ERROR_STREAM(logging_interface_->get_logger(), "List parameter not responding, recalling " << node_name_);
+    future                    = list_parameters_client_->async_send_request(req);
+  }
   std::vector<std::string> names = future.get()->result.names;
   auto req_describe_params       = std::make_shared<rcl_interfaces::srv::DescribeParameters::Request>();
   req_describe_params->names     = names;
+  RCLCPP_INFO(logging_interface_->get_logger(), "desc");
   auto future_get_params         = describe_parameters_client_->async_send_request(req_describe_params);
+  RCLCPP_INFO(logging_interface_->get_logger(), "waiting");
+  while (!(future_get_params.wait_for(0.1s) == std::future_status::ready)) {
+    RCLCPP_ERROR_STREAM(logging_interface_->get_logger(), "describe parameter not responding, recalling " << node_name_);
+    future_get_params         = describe_parameters_client_->async_send_request(req_describe_params);
+  }
 
   auto descriptions              = future_get_params.get()->descriptors;
+  RCLCPP_INFO(logging_interface_->get_logger(), "got desc");
 
   parameter_descriptions_        = copy_if_prefix(descriptions, node_name_);
+  RCLCPP_INFO(logging_interface_->get_logger(), "done");
 }
 
 } // namespace amtc

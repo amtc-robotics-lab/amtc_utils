@@ -14,6 +14,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <rfl.hpp>
 #include <rfl/enums.hpp>
+#include <rfl/internal/is_skip.hpp>
 #include <rfl/internal/is_validator.hpp>
 #include <rfl/parsing/schema/ValidationType.hpp>
 #include <rfl/to_view.hpp>
@@ -118,6 +119,9 @@ concept is_convertible_to_param = is_param<T> || (has_type_defined<T> && is_para
                                   (has_reflection_type_defined<T> && is_param<typename T::ReflectionType>);
 
 template <typename T>
+concept should_skip_deserialization = rfl::internal::is_skip_v<std::remove_cvref_t<T>> && std::remove_cvref_t<T>::skip_deserialization_;
+
+template <typename T>
 concept has_enum_type = has_type_defined<T> && std::is_enum_v<typename T::Type>;
 
 template <typename T> auto get_param_typeinfo() {
@@ -160,7 +164,9 @@ T declare_params(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr par
     }
     name.append(Field::name());
 
-    if constexpr (is_param<field_type>) {
+    if constexpr (should_skip_deserialization<original_type>) {
+      return;
+    } else if constexpr (is_param<field_type>) {
       // field.value() =
       // parameter_interface->declare_parameter<field_type>(name);
       try {
@@ -216,7 +222,9 @@ T get_params(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr paramet
   T retval;
   const auto view = rfl::to_view(retval);
   view.apply([&parameter_interface, &base_name]<typename Field>(const Field &field) {
-    using field_type = decltype(get_param_typeinfo<std::remove_pointer_t<typename Field::Type>>())::type;
+    using original_type = std::remove_pointer_t<typename Field::Type>;
+    using field_type    = decltype(get_param_typeinfo<std::remove_pointer_t<typename Field::Type>>())::type;
+
 
     std::string name;
     if (base_name != "") {
@@ -229,7 +237,9 @@ T get_params(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr paramet
     }
     name.append(Field::name());
 
-    if constexpr (is_convertible_to_param<field_type>) {
+    if constexpr (should_skip_deserialization<original_type>) {
+      return;
+    } else if constexpr (is_convertible_to_param<field_type>) {
       // field.value() =
       // parameter_interface->declare_parameter<field_type>(name);
       try {
@@ -257,7 +267,10 @@ T get_params(rclcpp::node_interfaces::NodeParametersInterface::SharedPtr paramet
 
 template <typename Field>
 void process_parameter_change(const Field &field, const rclcpp::Parameter &change, std::string base_name = "") {
-  using field_type = decltype(get_param_typeinfo<std::remove_pointer_t<typename Field::Type>>())::type;
+
+  using original_type = std::remove_pointer_t<typename Field::Type>;
+  using field_type    = decltype(get_param_typeinfo<std::remove_pointer_t<typename Field::Type>>())::type;
+
   std::string name;
   if (base_name != "") {
     if (base_name.back() == '.') {
@@ -269,7 +282,9 @@ void process_parameter_change(const Field &field, const rclcpp::Parameter &chang
   }
   name.append(Field::name());
 
-  if constexpr (is_convertible_to_param<field_type>) {
+  if constexpr (should_skip_deserialization<original_type>) {
+    return;
+  } else if constexpr (is_convertible_to_param<field_type>) {
 
     if (change.get_name() == name) {
       rclcpp::ParameterValue value{field_type{}};

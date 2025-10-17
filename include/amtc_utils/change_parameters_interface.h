@@ -43,7 +43,9 @@ public:
   bool switch_to_parameters(const std::string &basename);
   bool switch_to_parameters(const std::vector<rclcpp::Parameter> &parameters);
 
-private:
+  // may throw std::out_of_range
+  std::vector<rclcpp::Parameter>& get_parameters(std::string &basename);
+
   void get_parameter_descriptions();
   void get_parameter_set();
 
