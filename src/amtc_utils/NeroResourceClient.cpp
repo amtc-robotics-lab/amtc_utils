@@ -16,6 +16,25 @@ NeroResourceClient::NeroResourceClient(rclcpp::Node *node, const char* resource_
 
 }
 
+
+void NeroResourceClient::wait_for_services(){
+    using namespace std::chrono_literals;
+  auto  wait_for_service = [this] (auto client){
+    while (!client->wait_for_service(1s)) {
+      if (!rclcpp::ok()) {
+        RCLCPP_ERROR(node_->get_logger(),
+                     "Interrupted while waiting for the service. Exiting.");
+        return;
+      }
+      RCLCPP_INFO(node_->get_logger(), "Waiting for service %s",
+                  client->get_service_name());
+    }
+  };
+    wait_for_service(alloc_client_);
+    wait_for_service(free_client_);
+
+}
+
 bool NeroResourceClient::alloc(const rclcpp::Duration &timeout) {
 
     auto request = std::make_shared<resource_manager_msgs::srv::Alloc::Request>();

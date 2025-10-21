@@ -21,6 +21,7 @@ public:
   NeroResourceClient(rclcpp::Node *node, const char* resource_type);
 
 
+  void wait_for_services();
 
   bool alloc(const rclcpp::Duration &timeout = rclcpp::Duration(1,0) );
 
