@@ -2,6 +2,7 @@
 // Created by finostro on 27-11-23.
 //
 #include <amtc_utils/nero_resource/NeroResourceClient.h>
+#include <rfl/enums.hpp>
 
 
 
@@ -82,7 +83,7 @@ bool NeroResourceClient::free(const rclcpp::Duration &timeout) {
     }
     else
     {
-        RCLCPP_ERROR(node_->get_logger(), "Failed to call service resource_manager/free");
+        RCLCPP_ERROR(node_->get_logger(), "Failed to call service resource_manager/free %s", rfl::enum_to_string(future_status).c_str());
         return false;
     }
 }

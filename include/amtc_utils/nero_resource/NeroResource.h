@@ -8,6 +8,7 @@
 #include <resource_manager_msgs/srv/register.hpp>
 #include <resource_manager_msgs/srv/unregister.hpp>
 #include <resource_manager_msgs/srv/notify.hpp>
+#include <functional>
 
 
 // resource server to connect to resource manager
@@ -16,13 +17,23 @@ class NeroResource{
 public:
   typedef std::shared_ptr< NeroResource > SharedPtr;
 
-  NeroResource(rclcpp::Node *node, const char* resource_type);
+  NeroResource(
+      rclcpp::Node *node, const char *resource_type,
+      std::function<bool()> alloc_cb =
+          []() {
+            return true;
+          },
+      std::function<void()> free_cb =
+          []() {
+            return;
+          });
 
   ~NeroResource();
 
   bool is_registered();
 
   inline const std::string &get_access_token(){return access_token_;}
+
 
 private:
 
@@ -37,6 +48,8 @@ private:
 
   bool free_token_cb(resource_manager_msgs::srv::Notify::Request::SharedPtr req, resource_manager_msgs::srv::Notify::Response::SharedPtr res);
 
+  std::function<bool()> alloc_callback;
+  std::function<void()> free_callback;
   rclcpp::Node * node_;
   std::string resource_type_;
   std::string access_token_;

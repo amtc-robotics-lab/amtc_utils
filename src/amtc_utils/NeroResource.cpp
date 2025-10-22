@@ -3,8 +3,10 @@
 //
 #include <amtc_utils/nero_resource/NeroResource.h>
 
-NeroResource::NeroResource(rclcpp::Node *node, const char* resource_type):
-        is_registered_(false)
+NeroResource::NeroResource(rclcpp::Node *node, const char* resource_type, std::function<bool()> alloc_cb, std::function<void()> free_cb):
+        is_registered_(false),
+alloc_callback(alloc_cb),
+free_callback(free_cb)
 {
   node_ = node;
   resource_type_ = resource_type;
@@ -97,24 +99,29 @@ bool NeroResource::is_registered() {
     return is_registered_;
 }
 
+bool NeroResource::alloc_token_cb(resource_manager_msgs::srv::Notify::Request::SharedPtr req,
+                                  resource_manager_msgs::srv::Notify::Response::SharedPtr res) {
+  bool is_success = alloc_callback();
 
-bool NeroResource::alloc_token_cb(resource_manager_msgs::srv::Notify::Request::SharedPtr req, resource_manager_msgs::srv::Notify::Response::SharedPtr res)
-{
-  access_token_ = req->subscriber_token.data;
-  res->is_success = true;
-  RCLCPP_INFO(node_->get_logger(), "Selected %s Controller token is %s", resource_type_.c_str(), access_token_.c_str());
+  res->is_success = is_success;
+  if (is_success) {
+    access_token_ = req->subscriber_token.data;
+    RCLCPP_INFO(node_->get_logger(), "Selected %s Controller token is %s", resource_type_.c_str(),
+                access_token_.c_str());
+  } else {
 
+    RCLCPP_INFO(node_->get_logger(), "Cannot allocate a token");
+  }
 
-
-  return true;
+  return is_success;
 }
 
 bool NeroResource::free_token_cb(resource_manager_msgs::srv::Notify::Request::SharedPtr req,
                                  resource_manager_msgs::srv::Notify::Response::SharedPtr res) {
 
-
     if (req->subscriber_token.data == access_token_)
     {
+        free_callback();
         RCLCPP_INFO(node_->get_logger(), "Freed %s Controller token", resource_type_.c_str());
     }
     else
