@@ -6,8 +6,9 @@
  */
 
 #include <amtc_utils/Utils.h>
-#include <iostream>
+#include <rclcpp/logger.hpp>
 namespace amtc{
+
 
 
   std::string  to_string(const rclcpp::Time &time, bool include_ns)

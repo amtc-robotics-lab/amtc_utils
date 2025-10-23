@@ -8,6 +8,8 @@
 #ifndef AMTC_UTILS_UTILS_H_
 #define AMTC_UTILS_UTILS_H_
 
+#include <memory>
+#include <rclcpp/logger.hpp>
 #include <vector>
 #include <string>
 #include <sstream>
@@ -17,6 +19,27 @@
 
 namespace amtc {
 
+  void  wait_for_service   (auto client, std::shared_ptr<rclcpp::Logger> &logger){
+    wait_for_service(client, *logger);
+  }
+  // void  wait_for_service   (auto client, rclcpp::Logger logger){
+  //   wait_for_service(client, logger);
+  // }
+  void  wait_for_service   (auto client, const rclcpp::Logger &logger){
+  using namespace std::chrono_literals;
+  
+    while (!client->wait_for_service(1s)) {
+      if (!rclcpp::ok()) {
+        RCLCPP_ERROR(logger,
+                     "Interrupted while waiting for the service. Exiting.");
+        return;
+      }
+      RCLCPP_INFO(logger, "Waiting for service %s",
+                  client->get_service_name());
+    }
+      RCLCPP_INFO(logger, " service %s is ready",
+                  client->get_service_name());
+  };
 
   std::string  to_string(const rclcpp::Time &time, bool include_ns = false);
 /*

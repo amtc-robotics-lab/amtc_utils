@@ -2,7 +2,9 @@
 #include <amtc_utils/change_parameters_interface.h>
 
 #include <amtc_utils/params_helper.h>
+#include <amtc_utils/Utils.h>
 #include <rclcpp/executors.hpp>
+#include <rclcpp/logger.hpp>
 #include <rclcpp/node.hpp>
 #include <iterator>
 #include <memory>
@@ -51,7 +53,7 @@ ChangeParametersInterface::ChangeParametersInterface(
     std::vector<std::string> parameter_namespaces)
     : base_interface_(node_base), graph_interface_(node_graph), parameter_interface_(parameter_interface),
       services_interface_(services_interface), logging_interface_(logging_interface), node_name_(node_name),
-      parameter_namespaces_(parameter_namespaces) {}
+      parameter_namespaces_(parameter_namespaces), logger_(logging_interface->get_logger()) {}
 
 
 std::vector<rclcpp::Parameter>& ChangeParametersInterface::get_parameters(std::string &basename){
@@ -92,24 +94,11 @@ bool ChangeParametersInterface::switch_to_parameters(const std::string &basename
 void ChangeParametersInterface::activate() {
   // we are ready since configure
   RCLCPP_INFO(logging_interface_->get_logger(), "change param interface activating");
-  auto  wait_for_service = [this] (auto client){
-    while (!client->wait_for_service(1s)) {
-      if (!rclcpp::ok()) {
-        RCLCPP_ERROR(logging_interface_->get_logger(),
-                     "Interrupted while waiting for the service. Exiting.");
-        return;
-      }
-      RCLCPP_INFO(logging_interface_->get_logger(), "Waiting for service %s",
-                  client->get_service_name());
-    }
-      RCLCPP_INFO(logging_interface_->get_logger(), " service %s is ready",
-                  client->get_service_name());
-  };
   RCLCPP_INFO(logging_interface_->get_logger(), "waiting for services");
 
-  wait_for_service(describe_parameters_client_);
-  wait_for_service(set_parameters_client_);
-  wait_for_service(list_parameters_client_);
+  wait_for_service(describe_parameters_client_, logger_);
+  wait_for_service(set_parameters_client_, logger_);
+  wait_for_service(list_parameters_client_, logger_);
 
 
   RCLCPP_INFO(logging_interface_->get_logger(), "getting descriptions");

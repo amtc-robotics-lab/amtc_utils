@@ -10,6 +10,7 @@
 #include <rcl_interfaces/srv/set_parameters_atomically.hpp>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/client.hpp>
+#include <rclcpp/logger.hpp>
 #include <rclcpp/node.hpp>
 #include <rclcpp/node_interfaces/node_base_interface.hpp>
 #include <rclcpp/node_interfaces/node_graph_interface.hpp>
@@ -65,6 +66,7 @@ public:
 
   std::map<std::string, std::vector<rclcpp::Parameter>> parameter_set_;
   std::vector<rcl_interfaces::msg::ParameterDescriptor> parameter_descriptions_;
+  rclcpp::Logger logger_;
 };
 
 } // namespace amtc
