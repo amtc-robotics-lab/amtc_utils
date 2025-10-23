@@ -2,6 +2,7 @@
 // Created by finostro on 27-11-23.
 //
 #include <amtc_utils/nero_resource/NeroResource.h>
+#include <rclcpp/logger.hpp>
 
 NeroResource::NeroResource(rclcpp::Node *node, const char* resource_type, std::function<bool()> alloc_cb, std::function<void()> free_cb):
         is_registered_(false),
@@ -25,6 +26,7 @@ free_callback(free_cb)
   if (!register_resource()){
     throw std::runtime_error("Failed to register resource");
   }
+    RCLCPP_INFO(node_->get_logger(), "Resource: %s correctly registered" , resource_type_.c_str());
 
 }
 NeroResource::~NeroResource() {
@@ -68,7 +70,7 @@ bool NeroResource::register_resource(const rclcpp::Duration &timeout) {
 bool NeroResource::unregister_resource(const rclcpp::Duration &timeout) {
     if(!unregister_client_->wait_for_service(std::chrono::seconds(1)))
     {
-      RCLCPP_ERROR(node_->get_logger(), "Failed to find unregister server");
+      RCLCPP_ERROR(node_->get_logger(), "Failed to find unregister server for %s", resource_type_.c_str());
       return false;
     }
     auto request = std::make_shared<resource_manager_msgs::srv::Unregister::Request>();
@@ -79,18 +81,19 @@ bool NeroResource::unregister_resource(const rclcpp::Duration &timeout) {
     {
         if(!result.get()->is_success)
         {
-            RCLCPP_ERROR(node_->get_logger(), "Failed to unregister resource");
+            RCLCPP_ERROR(node_->get_logger(), "Failed to unregister resource %s", resource_type_.c_str());
             return false;
         }
 
         provider_token_ = "";
         access_token_ = "";
         is_registered_ = false;
+        RCLCPP_INFO(node_->get_logger(), "Resource: %s correctly unregistered" , resource_type_.c_str());
         return true;
     }
     else
     {
-        RCLCPP_ERROR(node_->get_logger(), "Failed to call service resource_manager/unregister");
+        RCLCPP_ERROR(node_->get_logger(), "Failed to call service resource_manager/unregister for %s", resource_type_.c_str());
         return false;
     }
 }
@@ -110,7 +113,7 @@ bool NeroResource::alloc_token_cb(resource_manager_msgs::srv::Notify::Request::S
                 access_token_.c_str());
   } else {
 
-    RCLCPP_INFO(node_->get_logger(), "Cannot allocate a token");
+    RCLCPP_INFO(node_->get_logger(), "Cannot allocate a token for resource %s", resource_type_.c_str());
   }
 
   return is_success;
