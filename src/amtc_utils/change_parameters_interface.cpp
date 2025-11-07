@@ -121,8 +121,6 @@ void ChangeParametersInterface::configure() {
   list_parameters_client_ = rclcpp::create_client<rcl_interfaces::srv::ListParameters>(
       base_interface_, graph_interface_, services_interface_, node_name_ + "/list_parameters",
       rmw_qos_profile_services_default, callback_group_);
-
-  
 }
 
 void ChangeParametersInterface::get_parameter_set() {
@@ -162,11 +160,11 @@ void ChangeParametersInterface::get_parameter_descriptions() {
   auto req                       = std::make_shared<rcl_interfaces::srv::ListParameters::Request>();
   req->depth                     = rcl_interfaces::srv::ListParameters_Request::DEPTH_RECURSIVE;
   RCLCPP_INFO(logging_interface_->get_logger(), "listing params");
-  
+
   auto future                    = list_parameters_client_->async_send_request(req);
   RCLCPP_INFO(logging_interface_->get_logger(), "waiting");
-  while (!(future.wait_for(0.1s) == std::future_status::ready)) {
-    RCLCPP_ERROR_STREAM(logging_interface_->get_logger(), "List parameter not responding, recalling " << node_name_);
+  while (!(future.wait_for(0.5s) == std::future_status::ready)) {
+    RCLCPP_INFO_STREAM(logging_interface_->get_logger(), "List parameter not responding, recalling " << node_name_);
     future                    = list_parameters_client_->async_send_request(req);
   }
   std::vector<std::string> names = future.get()->result.names;
@@ -175,8 +173,8 @@ void ChangeParametersInterface::get_parameter_descriptions() {
   RCLCPP_INFO(logging_interface_->get_logger(), "desc");
   auto future_get_params         = describe_parameters_client_->async_send_request(req_describe_params);
   RCLCPP_INFO(logging_interface_->get_logger(), "waiting");
-  while (!(future_get_params.wait_for(0.1s) == std::future_status::ready)) {
-    RCLCPP_ERROR_STREAM(logging_interface_->get_logger(), "describe parameter not responding, recalling " << node_name_);
+  while (!(future_get_params.wait_for(0.5s) == std::future_status::ready)) {
+    RCLCPP_INFO_STREAM(logging_interface_->get_logger(), "describe parameter not responding, recalling " << node_name_);
     future_get_params         = describe_parameters_client_->async_send_request(req_describe_params);
   }
 
