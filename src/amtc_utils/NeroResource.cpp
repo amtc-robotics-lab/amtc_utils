@@ -4,15 +4,20 @@
 #include <amtc_utils/nero_resource/NeroResource.h>
 #include <rclcpp/logger.hpp>
 
-NeroResource::NeroResource(rclcpp::Node *node, const char* resource_type, std::function<bool()> alloc_cb, std::function<void()> free_cb):
-        is_registered_(false),
+NeroResource::NeroResource(rclcpp::Node *node, const char* resource_type, std::function<bool()> alloc_cb, std::function<void()> free_cb, rclcpp::CallbackGroup::SharedPtr callback_group ):
+is_registered_(false),
 alloc_callback(alloc_cb),
 free_callback(free_cb)
 {
   node_ = node;
   resource_type_ = resource_type;
   access_token_ = "";
-  callback_group_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  if (callback_group) {
+    callback_group_ = callback_group;
+  } else {
+    callback_group_ = node->get_node_base_interface()->get_default_callback_group();
+  }
+
   register_client_ = node_->create_client<resource_manager_msgs::srv::Register>("resource_manager/register", rmw_qos_profile_services_default, callback_group_);
   unregister_client_ = node_->create_client<resource_manager_msgs::srv::Unregister>("resource_manager/unregister",rmw_qos_profile_services_default, callback_group_);
 

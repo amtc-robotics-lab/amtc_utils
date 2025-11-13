@@ -26,7 +26,9 @@ public:
       std::function<void()> free_cb =
           []() {
             return;
-          });
+          },
+    rclcpp::CallbackGroup::SharedPtr callback_group = nullptr
+  );
 
   ~NeroResource();
 
