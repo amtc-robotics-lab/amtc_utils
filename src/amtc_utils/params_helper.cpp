@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <amtc_utils/params_helper.h>
 #include <ranges>
-#include <rcl_interfaces/msg/detail/parameter__struct.hpp>
+#include <rcl_interfaces/msg/parameter.hpp>
 #include <rcl_interfaces/msg/parameter_value.hpp>
 #include <rclcpp/exceptions/exceptions.hpp>
 #include <rclcpp/parameter.hpp>

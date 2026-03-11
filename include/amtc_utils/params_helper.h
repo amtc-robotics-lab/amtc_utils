@@ -1,8 +1,8 @@
 #pragma once
 
 #include <exception>
-#include <rcl_interfaces/msg/detail/parameter_descriptor__struct.hpp>
-#include <rcl_interfaces/msg/detail/parameter_type__struct.hpp>
+#include <rcl_interfaces/msg/parameter_descriptor.hpp>
+#include <rcl_interfaces/msg/parameter_type.hpp>
 #include <rcl_interfaces/msg/floating_point_range.hpp>
 #include <rcl_interfaces/msg/integer_range.hpp>
 #include <rcl_interfaces/msg/parameter_value.hpp>

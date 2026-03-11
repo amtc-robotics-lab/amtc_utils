@@ -1,10 +1,10 @@
 #pragma once
 #include <amtc_utils/params_helper.h>
 
-#include <rcl_interfaces/msg/detail/parameter_descriptor__struct.hpp>
-#include <rcl_interfaces/srv/detail/describe_parameters__struct.hpp>
-#include <rcl_interfaces/srv/detail/list_parameters__struct.hpp>
-#include <rcl_interfaces/srv/detail/set_parameters_atomically__struct.hpp>
+#include <rcl_interfaces/msg/parameter_descriptor.hpp>
+#include <rcl_interfaces/srv/describe_parameters.hpp>
+#include <rcl_interfaces/srv/list_parameters.hpp>
+#include <rcl_interfaces/srv/set_parameters_atomically.hpp>
 #include <rcl_interfaces/srv/get_parameters.hpp>
 #include <rcl_interfaces/srv/list_parameters.hpp>
 #include <rcl_interfaces/srv/set_parameters_atomically.hpp>

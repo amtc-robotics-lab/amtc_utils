@@ -10,9 +10,9 @@
 #include <memory>
 #include <numeric>
 #include <ranges>
-#include <rcl_interfaces/srv/detail/describe_parameters__struct.hpp>
-#include <rcl_interfaces/srv/detail/list_parameters__struct.hpp>
-#include <rcl_interfaces/srv/detail/set_parameters_atomically__struct.hpp>
+#include <rcl_interfaces/srv/describe_parameters.hpp>
+#include <rcl_interfaces/srv/list_parameters.hpp>
+#include <rcl_interfaces/srv/set_parameters_atomically.hpp>
 #include <rcl_interfaces/srv/get_parameters.hpp>
 #include <rclcpp/callback_group.hpp>
 #include <rclcpp/create_client.hpp>
